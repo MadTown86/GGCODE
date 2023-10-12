@@ -65,7 +65,6 @@ file_browse_lbl.grid(column=1, row=0)
 file_browse_btn.grid(column=1, row=1)
 file_contents_btn.grid(column=0, row=0)
 file_text.grid(column=0, row=1, rowspan=1)
-file_frame.pack()
 
 # Renumber Tab Objects
 renumber_tab = tk.Frame(
@@ -77,7 +76,30 @@ renumber_tab = tk.Frame(
     relief='ridge',
     background=ch.askcolor(title="Choose Tab2 Color", parent=window)[1]
 )
-renumber_tab.pack()
+var = tk.StringVar()
+ren_rbtn_nochange = tk.Radiobutton(
+                        master=renumber_tab,
+                        text="NO CHANGE",
+                        variable=var,
+                        value=1
+                    )
+ren_rbtn_toolchanges = tk.Radiobutton(
+                            master=renumber_tab,
+                            text="ONLY NUMBER TOOL CHANGES",
+                            variable=var,
+                            value=2
+                        )
+
+ren_rbtn_removeall = tk.Radiobutton(
+                        master=renumber_tab,
+                        text="REMOVE ALL NUMBERS",
+                        variable=var,
+                        value=3
+                    )
+renumber_tab.grid(column=0, row=0, columnspan=1, rowspan=3)
+ren_rbtn_removeall.grid(column=0, row=1)
+ren_rbtn_toolchanges.grid(column=0, row=2)
+ren_rbtn_nochange.grid(column=0, row=3)
 
 # Tapping Tab Objects
 tapping_tab = tk.Frame(
@@ -95,8 +117,30 @@ notebook.add(child=renumber_tab, state="normal", text="RENUMBER")
 notebook.add(child=tapping_tab, state="normal", text="TAPPING")
 notebook.pack()
 
-# Event Handlers
+# File Parsing Tool:
+def file_scan():
+    global select_file
 
+    dia_dict = {"3/4,.75": .75, "1/2,.50,.5,.500": .50, "3/16,.1875": .1875, "1/8,.125": .125, "1/16,.0625": .0625}
+    tool_changes = {}
+    sf_lines = select_file.split("\n")
+    for line_no in range(len(sf_lines)):
+        if "M6" in sf_lines[line_no] or "M06" in sf_lines[line_no]:
+            diameter = None
+            if "(" in sf_lines[line_no-1]:
+                tool_comment = sf_lines[line_no-1]
+                for dia in dia_dict.keys():
+                    if not diameter:
+                        for x in dia.split(','):
+                            if x in tool_comment[:7]:
+                                diameter = dia_dict[dia]
+            tool_changes[line_no] = [sf_lines[line_no], tool_comment, diameter]
+
+    for ln, tc in tool_changes.items():
+        print(f'{ln=} ::: {tc=}')
+
+
+# Event Handlers
 def handle_file(event):
     global select_file
     """
@@ -107,8 +151,9 @@ def handle_file(event):
     select_file = fd.askopenfilename()
     with open(select_file, 'r') as f:
         select_file = f.read()
-        print(select_file)
         f.close()
+    file_scan()
+
 
 
 def text_update(msg, header: str = "- DEFAULT -"):
