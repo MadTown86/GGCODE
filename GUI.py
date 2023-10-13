@@ -1,123 +1,152 @@
-"""
-This module houses the tkinter GUI.
-"""
-
 import tkinter as tk
 import tkinter.ttk
-from tkinter import ttk
-from tkinter import colorchooser as ch
 from tkinter import filedialog as fd
 global select_file
 
-# Root Window
-window = tk.Tk()
 
-# color Chooser class for FUN
-ch.Chooser(master=window)
+root = tk.Tk()
+mainframe = tk.Frame(root)
 
-# Notebook for tab generation
-notebook = tkinter.ttk.Notebook(window)
+mainframe.grid( column=0, row=0, columnspan=2, rowspan=2)
 
-# File Tab Objects
-file_frame = tk.Frame(
-    master=window,
-    name="file",
-    height="400",
+# View Pane Elements
+left_pane = tk.Frame(
+    master=mainframe,
+    height="800",
     width="800",
-    borderwidth=5,
-    relief='ridge',
-    background=ch.askcolor(title="Choose Background Color", parent=window)[1]
+    relief='raised',
+    border=5,
+    borderwidth=5
 )
 
-# File Tab Objects for GRID
-file_browse_btn = tk.Button(
-    master=file_frame,
-    text="Browse",
+left_pane.grid(column=0, row=0, rowspan=2, columnspan=1, sticky='nsew')
+left_pane.grid_propagate(True)
+
+# xscrollbar = tk.Scrollbar(master=left_pane, orient='horizontal')
+# xscrollbar.grid(column=0, row=1, sticky='ew')
+#
+# yscrollbar = tk.Scrollbar(master=left_pane)
+#
+# yscrollbar.grid(row=0, column=1, rowspan=2, sticky='ns')
+
+left_pane_text = tk.Text(
+    master=left_pane,
     padx=5,
-    pady=5,
-    state="normal"
+    pady=4,
+    # xscrollcommand=xscrollbar.set,
+    # yscrollcommand=yscrollbar.set
 )
 
-file_text = tk.Text(
-    master=file_frame,
-    height='12',
-    width=75,
-    state="disabled",
-    wrap="none"
-)
+left_pane_text.grid(row=0, column=0, rowspan=2, sticky=tk.N+tk.S+tk.E+tk.W)
+# xscrollbar.config(command=left_pane_text.xview)
+# yscrollbar.config(command=left_pane_text.yview)
 
-file_contents_btn = tk.Button(
-    master=file_frame,
-    text="Show Conents",
-    padx=5,
-    pady=5,
-    state="normal"
-)
-
-file_browse_lbl = ttk.Label(
-    master=file_frame,
-    text="Please Choose A Gcode File"
-)
-
-# File Objects Grid Placements
-file_frame.grid(column=0, row=0, columnspan=2, rowspan=2)
-file_browse_lbl.grid(column=1, row=0)
-file_browse_btn.grid(column=1, row=1)
-file_contents_btn.grid(column=0, row=0)
-file_text.grid(column=0, row=1, rowspan=1)
-
-# Renumber Tab Objects
-renumber_tab = tk.Frame(
-    master=window,
-    name="renumber",
-    height="400",
-    width="800",
+# TAB FRAME ELEMENTS
+right_pane_top = tk.Frame(
+    master=mainframe,
+    height="800",
+    width="400",
+    relief='sunken',
+    border=5,
     borderwidth=5,
-    relief='ridge',
-    background=ch.askcolor(title="Choose Tab2 Color", parent=window)[1]
+    bg="#9E8839"
 )
-var = tk.StringVar()
-ren_rbtn_nochange = tk.Radiobutton(
-                        master=renumber_tab,
-                        text="NO CHANGE",
-                        variable=var,
-                        value=1
-                    )
-ren_rbtn_toolchanges = tk.Radiobutton(
-                            master=renumber_tab,
-                            text="ONLY NUMBER TOOL CHANGES",
-                            variable=var,
-                            value=2
-                        )
 
-ren_rbtn_removeall = tk.Radiobutton(
-                        master=renumber_tab,
-                        text="REMOVE ALL NUMBERS",
-                        variable=var,
-                        value=3
-                    )
-renumber_tab.grid(column=0, row=0, columnspan=1, rowspan=3)
-ren_rbtn_removeall.grid(column=0, row=1)
-ren_rbtn_toolchanges.grid(column=0, row=2)
-ren_rbtn_nochange.grid(column=0, row=3)
+right_pane_top.grid(column=1, row=0)
 
-# Tapping Tab Objects
-tapping_tab = tk.Frame(
-    master=window,
-    name='tapping',
-    height="400",
-    width="800",
+# Tabs Handled by Notebook
+notebook = tkinter.ttk.Notebook(master=right_pane_top)
+
+right_pane_top_file = tk.Frame(
+    master=notebook,
+    height="800",
+    width="400",
+    relief='sunken',
+    border=5,
     borderwidth=5,
-    relief='ridge',
-    background=ch.askcolor(title="Choose Tapping Tab Color", parent=window)[1]
+    bg="#9E8839"
 )
 
-notebook.add(child=file_frame, state="normal", text="FILE")
-notebook.add(child=renumber_tab, state="normal", text="RENUMBER")
-notebook.add(child=tapping_tab, state="normal", text="TAPPING")
-notebook.pack()
+right_pane_top_file.grid(column=0, row=0)
 
-# File Parsing Tool:
+file_btn = tk.Button(master=right_pane_top_file, text="Browse",justify='center', padx=50, pady=50)
+
+show_contents_btn = tk.Button(master=right_pane_top_file, text="Show Contents", justify='center', padx=50, pady=50)
+
+file_btn.grid(column=2, row=2)
+
+show_contents_btn.grid(column=2, row=3)
+
+right_pane_top_renumber = tk.Frame(
+    master=right_pane_top,
+    height="800",
+    width="400",
+    relief='sunken',
+    border=5,
+    borderwidth=5,
+    bg="#9E6739"
+)
+right_pane_top_tapping = tk.Frame(
+    master=right_pane_top,
+    height="800",
+    width="400",
+    relief='sunken',
+    border=5,
+    borderwidth=5,
+    bg="#9E5339"
+)
+notebook.add(right_pane_top_file, text="FILE", state="normal")
+notebook.add(child=right_pane_top_renumber, text="RENUMBER", state="normal")
+notebook.add(child=right_pane_top_tapping, text="TAPPING", state="normal")
+notebook.pack(expand=True, fill='both')
+
+right_pane_bot = tk.Frame(
+    master=mainframe,
+    width="400",
+    border=5,
+    borderwidth=5,
+    relief='flat'
+)
+
+confirm_btn = tk.ttk.Button(
+    master=right_pane_bot,
+    text="Confirm",
+)
+confirm_btn.pack()
+
+right_pane_bot.grid(
+    column=1,
+    row=1,
+)
+
+# Event Handlers:
+def handle_show_contents(event):
+    global select_file
+    """
+    Shows the contents of the chosen file in the textbox
+    :param event: 
+    :return: 
+    """
+    try:
+        if select_file:
+            text_update(select_file)
+        else:
+            raise
+    except:
+        text_update("FIRST SELECT A FILE")
+
+def text_update(msg, header: str = "- DEFAULT -"):
+    """
+    This function updates file_textbox with contents of chosen file
+    :param msg: contents of chosen file
+    :param header:
+    :return: None
+    """
+    left_pane_text.config(state="normal")
+    left_pane_text.delete("1.0", "end")
+    left_pane_text.insert("1.0", str(f'STATUS MESSAGE: {header} -> \n{msg}'))
+    left_pane_text.config(state="disabled")
+
 def file_scan():
     global select_file
 
@@ -138,59 +167,15 @@ def file_scan():
 
     for ln, tc in tool_changes.items():
         print(f'{ln=} ::: {tc=}')
-
-
-# Event Handlers
-def handle_file(event):
+def open_file():
     global select_file
-    """
-    Allows user to select a file
-    :param event: 
-    :return: 
-    """
     select_file = fd.askopenfilename()
     with open(select_file, 'r') as f:
         select_file = f.read()
-        f.close()
-    file_scan()
+def browse_click(Event):
+    open_file()
 
+file_btn.bind("<Button-1>", browse_click)
+show_contents_btn.bind("<Button-1>", handle_show_contents)
 
-
-def text_update(msg, header: str = "- DEFAULT -"):
-    """
-    This function updates file_textbox with contents of chosen file
-    :param msg: contents of chosen file
-    :param header:
-    :return: None
-    """
-    file_text.config(state="normal")
-    file_text.delete("1.0", "end")
-    file_text.insert("1.0", str(f'STATUS MESSAGE: {header} -> \n{msg}'))
-    file_text.config(state="disabled")
-
-
-def handle_show_contents(event):
-    global select_file
-    """
-    Shows the contents of the chosen file in the textbox
-    :param event: 
-    :return: 
-    """
-    try:
-        if select_file:
-            text_update(select_file)
-        else:
-            raise
-    except:
-        text_update("FIRST SELECT A FILE")
-
-
-# Button Bindings
-file_browse_btn.bind("<Button-1>", handle_file)
-file_contents_btn.bind("<Button-1>", handle_show_contents)
-
-
-
-
-if __name__ == "__main__":
-    window.mainloop()
+root.mainloop()
