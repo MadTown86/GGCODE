@@ -7,39 +7,39 @@ global select_file
 root = tk.Tk()
 mainframe = tk.Frame(root)
 
-mainframe.grid( column=0, row=0, columnspan=2, rowspan=2)
+mainframe.grid(column=1, row=0, rowspan=2)
 
 # View Pane Elements
 left_pane = tk.Frame(
-    master=mainframe,
+    master=root,
     height="800",
-    width="800",
+    width="400",
     relief='raised',
     border=5,
     borderwidth=5
 )
 
-left_pane.grid(column=0, row=0, rowspan=2, columnspan=1, sticky='nsew')
-left_pane.grid_propagate(True)
+left_pane.grid(column=0, row=0, rowspan=2)
+left_pane.grid_rowconfigure(0, weight=0)
+left_pane.grid_columnconfigure(0, weight=1)
 
-# xscrollbar = tk.Scrollbar(master=left_pane, orient='horizontal')
-# xscrollbar.grid(column=0, row=1, sticky='ew')
-#
-# yscrollbar = tk.Scrollbar(master=left_pane)
-#
-# yscrollbar.grid(row=0, column=1, rowspan=2, sticky='ns')
+xscrollbar = tk.Scrollbar(master=left_pane, orient='horizontal')
+xscrollbar.grid(column=0, row=1, sticky='ew')
+
+yscrollbar = tk.Scrollbar(master=left_pane, orient='vertical')
+yscrollbar.grid(row=0, column=1, rowspan=2, sticky='ns')
 
 left_pane_text = tk.Text(
     master=left_pane,
     padx=5,
     pady=4,
-    # xscrollcommand=xscrollbar.set,
-    # yscrollcommand=yscrollbar.set
+    xscrollcommand=xscrollbar.set,
+    yscrollcommand=yscrollbar.set
 )
 
-left_pane_text.grid(row=0, column=0, rowspan=2, sticky=tk.N+tk.S+tk.E+tk.W)
-# xscrollbar.config(command=left_pane_text.xview)
-# yscrollbar.config(command=left_pane_text.yview)
+left_pane_text.grid(row=0, column=0, rowspan=2, sticky='NSEW')
+xscrollbar.config(command=left_pane_text.xview)
+yscrollbar.config(command=left_pane_text.yview)
 
 # TAB FRAME ELEMENTS
 right_pane_top = tk.Frame(
@@ -69,7 +69,7 @@ right_pane_top_file = tk.Frame(
 
 right_pane_top_file.grid(column=0, row=0)
 
-file_btn = tk.Button(master=right_pane_top_file, text="Browse",justify='center', padx=50, pady=50)
+file_btn = tk.Button(master=right_pane_top_file, text="Browse", justify='center', padx=50, pady=50)
 
 show_contents_btn = tk.Button(master=right_pane_top_file, text="Show Contents", justify='center', padx=50, pady=50)
 
