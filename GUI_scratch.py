@@ -1,27 +1,6 @@
 import tkinter as tk
 from tkinter.ttk import Notebook
 
-class TextWithScrollBars(tk.Frame):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.grid_propagate(False)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-        xscrollbar = tk.Scrollbar(self, orient="horizontal")
-        yscrollbar = tk.Scrollbar(self, orient="vertical")
-        self.text = tk.Text(
-            self,
-            xscrollcommand=xscrollbar.set,
-            yscrollcommand=yscrollbar.set
-        )
-
-        xscrollbar.config(command=self.text.xview)
-        yscrollbar.config(command=self.text.yview)
-
-        self.text.grid(row=0, column=0, rowspan=2, sticky="NWES")
-        yscrollbar.grid(row=0, column=1, rowspan=2, sticky="NS")
-        xscrollbar.grid(row=1, column=0, sticky="EW")
 # Root Elements
 root = tk.Tk()
 root.grid_columnconfigure(0, weight=3)
