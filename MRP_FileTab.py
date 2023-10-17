@@ -21,11 +21,26 @@ class FileTab(tk.Frame):
         self.grid(column=0, row=0, sticky='nsew')
 
         def select_file(SelectFileEvent):
-            self.rawfile = fd.askopenfilename()
+            self.rawfile = fd.askopenfile()
             if self.rawfile is not None:
                 rawfile = self.rawfile
-                eventlog.generate('file_selected', self, self.rawfile)
+                eventlog.generate('file_selected', rawfile)
+                eventlog.generate('show_contents_event', 'normal')
 
         browse_btn.bind("<Button 1>", select_file)
-    def activate_content(self):
-        self.contents_btn.config(state='normal')
+        def activate_content(payload):
+            contents_btn.config(state=payload)
+
+        def show_contents(Event):
+            for kind in eventlog.listeners:
+                print(f'{kind=}')
+            if self.rawfile:
+                eventlog.generate('update_text', self.rawfile.read())
+
+        def disable_show(payload):
+            contents_btn.config(state=payload)
+
+        contents_btn.bind("<Button-1>", show_contents)
+        eventlog.listen('show_contents_event', activate_content)
+        eventlog.listen('disable_show', disable_show)
+

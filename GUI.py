@@ -41,9 +41,13 @@ class MRP:
     tabs.add(tapping_tab, text='TAPPING', state='normal')
     tabs.grid(column=0, row=0, sticky='nsew')
 
-    def store_file(instance, payload):
+    @staticmethod
+    def activate_text(self):
+        self.eventlogger.generate('show_contents_event', 'normal')
+    @staticmethod
+    def store_file(payload):
         file = payload
-        self.file_tab.activate_content()
+
 
     eventlogger.listen('file_selected', store_file)
     root.mainloop()
