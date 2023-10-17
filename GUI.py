@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-import MRP_TextWithScrollBars, MRP_FileTab, MRP_RenumberTab, MRP_TappingTab, MRP_EventHandler
+import MRP_TextWithScrollBars, MRP_FileTab, MRP_RenumberTab, MRP_TappingTab, MRP_EventHandler, MRP_ToolData
 
 class MRP:
     file = None
@@ -39,6 +39,8 @@ class MRP:
     tabs.add(renumber_tab, text='RENUMBER', state="normal")
     tapping_tab = MRP_TappingTab.TappingTab(tabs, bg='#CE663E', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
     tabs.add(tapping_tab, text='TAPPING', state='normal')
+    tool_tab = MRP_ToolData.ToolTab(tabs, bg='#D98E04', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
+    tabs.add(tool_tab, text='TOOL DATA', state='normal')
     tabs.grid(column=0, row=0, sticky='nsew')
 
     @staticmethod
