@@ -6,7 +6,7 @@ class FileTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs),
         self.rawfile = None
-        eventlog = MRP_EventHandler.EventHandler()
+        eventlog = GGCODE_EventHandler.EventHandler()
 
         browse_lbl = tk.Label(self, text='Please Choose An *.NC File Or Equivalent', justify='left')
         browse_btn = tk.Button(self, text='Browse', justify='left', pady=10)

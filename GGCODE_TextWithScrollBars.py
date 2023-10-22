@@ -7,7 +7,7 @@ class TextWithScrollBars(tk.Frame):
         self.grid_propagate(False)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        eventlog = MRP_EventHandler.EventHandler()
+        eventlog = GGCODE_EventHandler.EventHandler()
 
         xscrollbar = tk.Scrollbar(self, orient="horizontal")
         yscrollbar = tk.Scrollbar(self, orient="vertical")
@@ -33,7 +33,10 @@ class TextWithScrollBars(tk.Frame):
         self.text.tag_config('O', foreground='teal')
         self.text.tag_config('F', foreground='gray')
         self.text.tag_config('Z', foreground='brown')
-        self.text.tag_config('R', foreground='violet')
+        self.text.tag_config('R', foreground='gold')
+        alltaglist = {'GCODE': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [], 'R': []}
+
+        self.runonce = False
 
         def replace_text(payload):
             self.text.config(state='normal')
@@ -48,7 +51,15 @@ class TextWithScrollBars(tk.Frame):
             prettier_it(self.text.get('1.0', 'end'))
             self.text.config(state='disabled')
 
+        def clear_tags():
+            for key in alltaglist.keys():
+                for index_value in range(len(alltaglist[key])):
+                    self.text.tag_remove(key, alltaglist[key][index_value][0], alltaglist[key][index_value][1])
+                alltaglist[key] = []
+            print(f'{alltaglist=}')
+
         def prettier_it(msg):
+            clear_tags()
             msgtext = msg.split('\n')
             dictbin_chunks = {'G': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [],
                               'R': []}
@@ -84,7 +95,7 @@ class TextWithScrollBars(tk.Frame):
                             msgtext[line][tstart:tstart + 3]]
                 cursor = 0
                 endpoint = 0
-                line_num = line + 2
+                line_num = line + 1
                 while endpoint < len(msgtext[line]):
                     if endpoint >= len(msgtext[line]):
                         break
@@ -103,27 +114,37 @@ class TextWithScrollBars(tk.Frame):
                                 chunk = msgtext[line][cursor:endpoint].replace(' ', '')
                         cursor_add = str(line_num) + '.' + str(cursor)
                         endpoint_add = str(line_num) + '.' + str(endpoint)
+
                         if len(chunk) > 1:
                             if chunk[0] == 'G' and chunk[1].isnumeric():
                                 self.text.tag_add('GCODE', cursor_add, endpoint_add)
+                                alltaglist['GCODE'] += [(cursor_add, endpoint_add)]
                             elif 'X' in chunk or 'Y' in chunk:
                                 pass
                             elif chunk[0] == 'M' and chunk[1].isnumeric():
                                 self.text.tag_add('M', cursor_add, endpoint_add)
+                                alltaglist['M'] += [(cursor_add, endpoint_add)]
                             elif chunk[0] == 'N' and chunk[1].isnumeric():
                                 self.text.tag_add('N', cursor_add, endpoint_add)
+                                alltaglist['N'] += [(cursor_add, endpoint_add)]
                             elif chunk[0] == 'T' and chunk[1].isnumeric():
                                 self.text.tag_add('T', cursor_add, endpoint_add)
+                                alltaglist['T'] += [(cursor_add, endpoint_add)]
                             elif chunk[0] == 'O' and chunk[1].isnumeric():
                                 self.text.tag_add('O', cursor_add, endpoint_add)
+                                alltaglist['O'] += [(cursor_add, endpoint_add)]
                             elif chunk[0] == 'S' and chunk[1].isnumeric():
                                 self.text.tag_add('S', cursor_add, endpoint_add)
+                                alltaglist['S'] += [(cursor_add, endpoint_add)]
                             elif chunk[0] == 'F' and chunk[1].isnumeric() or chunk[1] == '.':
                                 self.text.tag_add('F', cursor_add, endpoint_add)
+                                alltaglist['F'] += [(cursor_add, endpoint_add)]
                             elif chunk[0] == 'Z' and chunk[-1].isnumeric() or chunk[1] == '.':
                                 self.text.tag_add('Z', cursor_add, endpoint_add)
+                                alltaglist['Z'] += [(cursor_add, endpoint_add)]
                             elif chunk[0] == 'R' and chunk[-1].isnumeric() or chunk[1] == '.':
                                 self.text.tag_add('R', cursor_add, endpoint_add)
+                                alltaglist['R'] += [(cursor_add, endpoint_add)]
                             cursor = endpoint + 1
                             endpoint = cursor + 1
                     elif msgtext[cursor] == ' ':
@@ -132,18 +153,19 @@ class TextWithScrollBars(tk.Frame):
                     else:
                         cursor += 1
                         endpoint = cursor + 1
+                    self.runonce = True
             return dictbin_tools, dictbin_tapping
-        def update_text(msg, header: str = "- DEFAULT -"):
+
+        def update_text(msg):
             """
             This function updates file_textbox with contents of chosen file
             :param msg: contents of chosen file
-            :param header:
             :return: None
             """
 
             self.text.config(state="normal")
             self.text.delete("1.0", "end")
-            self.text.insert("1.0", str(f'STATUS MESSAGE: {header} -> \n{msg}'))
+            self.text.insert("1.0", msg)
             self.text.config(state="disabled")
             eventlog.generate('disable_show', 'disabled')
 
@@ -151,6 +173,5 @@ class TextWithScrollBars(tk.Frame):
             eventlog.generate('tool_list_generated', dictbin_tools)
             eventlog.generate('tapping_list_generated', dictbin_tapping)
             eventlog.listen('replace_text', replace_text)
-
 
         eventlog.listen('update_text', update_text)

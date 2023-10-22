@@ -5,7 +5,7 @@ class ToolTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs),
         self.grid(column=0, row=0, sticky='nsew')
-        eventlog = MRP_EventHandler.EventHandler()
+        eventlog = GGCODE_EventHandler.EventHandler()
 
 
         def add_tool_entries(payload):

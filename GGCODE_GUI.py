@@ -7,7 +7,7 @@ class MRP:
     file = None
     def __init__(self):
         self.file = None
-    eventlogger = MRP_EventHandler.EventHandler()
+    eventlogger = GGCODE_EventHandler.EventHandler()
     root = tk.Tk()
     root.grid_columnconfigure(0, weight=20)
     root.grid_columnconfigure(1, weight=1)
@@ -27,19 +27,19 @@ class MRP:
     confirm_btn = tk.Button(master=root, text='Confirm')
     confirm_btn.grid(column=1, row=1)
 
-    textpane = MRP_TextWithScrollBars.TextWithScrollBars(left_pane, bg='#597275', relief='raised')
+    textpane = GGCODE_TextWithScrollBars.TextWithScrollBars(left_pane, bg='#597275', relief='raised')
     textpane.grid(column=0, row=0, sticky='nsew')
     textpane.grid_rowconfigure(0, weight=1)
     textpane.grid_columnconfigure(0, weight=1)
 
     tabs = ttk.Notebook(right_pane)
-    file_tab = MRP_FileTab.FileTab(tabs, bg='#9C5935', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
+    file_tab = GGCODE_FileTab.FileTab(tabs, bg='#9C5935', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
     tabs.add(file_tab, text='FILE', state="normal")
-    renumber_tab = MRP_RenumberTab.RenumberTab(tabs, bg='#C27027', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
+    renumber_tab = GGCODE_RenumberTab.RenumberTab(tabs, bg='#C27027', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
     tabs.add(renumber_tab, text='RENUMBER', state="normal")
-    tapping_tab = MRP_TappingTab.TappingTab(tabs, bg='#CE663E', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
+    tapping_tab = GGCODE_TappingTab.TappingTab(tabs, bg='#CE663E', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
     tabs.add(tapping_tab, text='TAPPING', state='normal')
-    tool_tab = MRP_ToolData.ToolTab(tabs, bg='#D98E04', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
+    tool_tab = GGCODE_ToolData.ToolTab(tabs, bg='#D98E04', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
     tabs.add(tool_tab, text='TOOL DATA', state='normal')
     tabs.grid(column=0, row=0, sticky='nsew')
 

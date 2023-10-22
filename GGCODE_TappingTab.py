@@ -13,7 +13,7 @@ class TappingTab(tk.Frame):
         tapping_lines = {}
         final_tapping_output = {}
 
-        eventlog = MRP_EventHandler.EventHandler()
+        eventlog = GGCODE_EventHandler.EventHandler()
         count = 0
 
         final_tap_elements = {}
@@ -76,10 +76,19 @@ class TappingTab(tk.Frame):
             self.aftertextlbl.grid(column=0, columnspan=2, row=count, sticky='ew')
             count += 1
 
+            self.updatetextlbl = tk.Label(self, background=framecolor, justify='center')
+            self.updatetextlbl.grid(column=0, columnspan=2, row=count, sticky='ew')
+            count += 1
+
+            self.afterupdatelbl = tk.Label(self, background=framecolor, justify='center')
+            self.afterupdatelbl.grid(column=0, columnspan=2, row=count, sticky='ew')
+            count += 1
+
             self.send_button = tk.Button(self, text='Send To File', justify='center', pady=10)
             self.send_button.grid(column=0, columnspan=2, row=count, sticky='ew')
             self.send_button.bind("<Button-1>", adjust_tapping_code)
             count += 1
+
 
         def show_tappingtext_event(payload):
             rigid_tappingdict[payload[0]] = [payload[1], payload[2]]
@@ -88,8 +97,22 @@ class TappingTab(tk.Frame):
             for key in rigid_tappingdict.keys():
                 self.show_tappingtext.insert('end', f'{key}-----{rigid_tappingdict[key]}\n')
             self.show_tappingtext.config(state='disabled')
+
         def confirm_choices_event(event):
-            eventlog.generate('show_tappingtext_event', [toolvar.get(), true_falsevar.get(), depthvar.get()])
+            toolcontents = toolvar.get()
+            true_falsecontents = true_falsevar.get()
+            depthcontents = depthvar.get()
+            if 'T' in toolcontents and true_falsecontents != '' and depthcontents != '':
+                eventlog.generate('show_tappingtext_event', [toolcontents, true_falsecontents, depthcontents])
+            elif 'T' not in toolcontents and true_falsecontents != '':
+                self.updatetextlbl.config(text='*****SELECT A TAP RADIO BUTTON FIRST*****\n'
+                                               '*****THEN SELECT A TRUE/FALSE RADIO BUTTON*****')
+            elif 'T' in toolcontents and true_falsecontents == '':
+                self.updatetextlbl.config(text='*****SELECT A TRUE/FALSE RADIO BUTTON*****')
+            elif 'T' in toolcontents and true_falsecontents != '' and depthcontents == '':
+                self.updatetextlbl.config(text='*****SELECT A DEPTH RADIO BUTTON*****')
+            else:
+                self.updatetextlbl.config(text='*****SELECT OPTIONS FIRST*****')
 
         def add_tapping_elements(payload):
             nonlocal final_tap_elements
@@ -142,28 +165,52 @@ class TappingTab(tk.Frame):
                 '1-12'   : f'{1/12:.4f}',
                 'M2.5x.45': f'{.45*.03937:.4f}',
                 'm2.5x.45': f'{.45*.03937:.4f}',
+                'M2.5X.45': f'{.45*.03937:.4f}',
+                'm2.5X.45': f'{.45*.03937:.4f}',
                 'M3x.5'  : f'{.5*.03937:.4f}',
+                'M3X.5'  : f'{.5*.03937:.4f}',
                 'm3x.5'  : f'{.5*.03937:.4f}',
+                'm3X.5'  : f'{.5*.03937:.4f}',
                 'M3.5x.6': f'{.6*.03937:.4f}',
+                'M3.5X.6': f'{.6*.03937:.4f}',
                 'm3.5x.6': f'{.6*.03937:.4f}',
+                'm3.5X.6': f'{.6*.03937:.4f}',
                 'M4x.7'  : f'{.7*.03937:.4f}',
+                'm4X.7'  : f'{.7*.03937:.4f}',
                 'm4x.7'  : f'{.7*.03937:.4f}',
+                'M4X.7'  : f'{.7*.03937:.4f}',
                 'M5x.8'  : f'{.8*.03937:.4f}',
+                'M5X.8'  : f'{.8*.03937:.4f}',
                 'm5x.8'  : f'{.8*.03937:.4f}',
+                'm5X.8'  : f'{.8*.03937:.4f}',
                 'M6x1'   : f'{1*.03937:.4f}',
+                'M6X1'   : f'{1*.03937:.4f}',
                 'm6x1'   : f'{1*.03937:.4f}',
+                'm6X1'   : f'{1*.03937:.4f}',
                 'M7x1'   : f'{1*.03937:.4f}',
+                'M7X1'   : f'{1*.03937:.4f}',
                 'm7x1'   : f'{1*.03937:.4f}',
+                'm7X1'   : f'{1*.03937:.4f}',
                 'M8x1.25': f'{1.25*.03937:.4f}',
+                'M8X1.25': f'{1.25*.03937:.4f}',
                 'm8x1.25': f'{1.25*.03937:.4f}',
+                'm8X1.25': f'{1.25*.03937:.4f}',
                 'M10x1.5': f'{1.5*.03937:.4f}',
+                'M10X1.5': f'{1.5*.03937:.4f}',
                 'm10x1.5': f'{1.5*.03937:.4f}',
+                'm10X1.5': f'{1.5*.03937:.4f}',
                 'M12x1.75': f'{1.75*.03937:.4f}',
+                'M12X1.75': f'{1.75*.03937:.4f}',
                 'm12x1.75': f'{1.75*.03937:.4f}',
+                'm12X1.75': f'{1.75*.03937:.4f}',
                 'M14x2'  : f'{2*.03937:.4f}',
+                'M14X2'  : f'{2*.03937:.4f}',
                 'm14x2'  : f'{2*.03937:.4f}',
+                'm14X2'  : f'{2*.03937:.4f}',
                 'M16x2'  : f'{2*.03937:.4f}',
+                'M16X2'  : f'{2*.03937:.4f}',
                 'm16x2'  : f'{2*.03937:.4f}',
+                'm16X2'  : f'{2*.03937:.4f}',
             }
             for key in payload.keys():
                 keysplit = key.split('-----')
