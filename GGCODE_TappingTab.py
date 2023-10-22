@@ -1,7 +1,7 @@
 import tkinter as tk
 
 
-import MRP_EventHandler
+import GGCODE_EventHandler
 class TappingTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

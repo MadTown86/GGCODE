@@ -1,5 +1,5 @@
 import tkinter as tk
-import MRP_EventHandler
+import GGCODE_EventHandler
 
 class ToolTab(tk.Frame):
     def __init__(self, *args, **kwargs):

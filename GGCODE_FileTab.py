@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog as fd
-import MRP_EventHandler
+import GGCODE_EventHandler
 import signal
 class FileTab(tk.Frame):
     def __init__(self, *args, **kwargs):

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-import MRP_TextWithScrollBars, MRP_FileTab, MRP_RenumberTab, MRP_TappingTab, MRP_EventHandler, MRP_ToolData
+import GGCODE_TextWithScrollBars, GGCODE_FileTab, GGCODE_RenumberTab, GGCODE_TappingTab, GGCODE_EventHandler, GGCODE_ToolData
 
 class MRP:
     file = None
