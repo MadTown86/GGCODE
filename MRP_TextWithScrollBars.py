@@ -36,13 +36,17 @@ class TextWithScrollBars(tk.Frame):
         self.text.tag_config('R', foreground='violet')
 
         def replace_text(payload):
-            self.text.config(state="normal")
+            self.text.config(state='normal')
+            for key in payload.keys():
+                start = str(int(self.text.search(key, '1.0', 'end').split('.')[0]) + 3) + '.0'
+                stop = str(int(self.text.search('G80', start, 'end').split('.')[0])) + '.0'
+                self.text.delete(start, stop)
+
             for key, value in payload.items():
-                self.text.delete(value[0][0], value[0][1])
-                self.text.insert(value[0][0], value[1])
-            self.text.config(state="disabled")
-            msg = self.text.get('1.0', 'end')
-            print(msg.split('\n'))
+                start = str(int(self.text.search(key, '1.0', 'end').split('.')[0]) + 3) + '.0'
+                self.text.insert(start, value[1])
+            prettier_it(self.text.get('1.0', 'end'))
+            self.text.config(state='disabled')
 
         def prettier_it(msg):
             msgtext = msg.split('\n')
@@ -73,7 +77,7 @@ class TextWithScrollBars(tk.Frame):
                         if '(' in msgtext[line]:
                             dictbin_tools[msgtext[line][tstart:tstart + 3]] = msgtext[line][
                                                                               msgtext[line].index('(') + 1:msgtext[
-                                                                                  line].index(')')]
+                                                                                  line].index(')')+1]
                         elif '(' in msgtext[line - 1]:
                             dictbin_tools[msgtext[line][tstart:tstart + 3]] = msgtext[line - 1]
                         last_tool = msgtext[line][tstart:tstart + 3] + '-----' + dictbin_tools[
@@ -90,9 +94,15 @@ class TextWithScrollBars(tk.Frame):
                         while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
                             endpoint += 1
                         chunk = msgtext[line][cursor:endpoint]
+                        print(chunk)
+                        if chunk != '%' and len(chunk) == 1:
+                            endpoint += 1
+                            if msgtext[line][endpoint].isnumeric() or msgtext[line][endpoint] == '.':
+                                while msgtext[line][endpoint] != ' ':
+                                    endpoint += 1
+                                chunk = msgtext[line][cursor:endpoint].replace(' ', '')
                         cursor_add = str(line_num) + '.' + str(cursor)
                         endpoint_add = str(line_num) + '.' + str(endpoint)
-                        print(chunk)
                         if len(chunk) > 1:
                             if chunk[0] == 'G' and chunk[1].isnumeric():
                                 self.text.tag_add('GCODE', cursor_add, endpoint_add)
@@ -137,88 +147,6 @@ class TextWithScrollBars(tk.Frame):
             self.text.config(state="disabled")
             eventlog.generate('disable_show', 'disabled')
 
-            # msgtext = msg.split('\n')
-            # dictbin_chunks = {'G': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [], 'R': []}
-            # dictbin_tapping = {}
-            # dictbin_tools = {}
-            # mark_tap = False
-            # tap_append = []
-            # tool_append = []
-            # last_tool = ''
-            # add_line = ''
-            # for line in range(len(msgtext)):
-            #     if 'G84' in msgtext[line] and last_tool != 'blank':
-            #         mark_tap = True
-            #     if mark_tap and 'G80' not in msgtext[line]:
-            #         tap_append.append((line+2, msgtext[line]))
-            #     if 'G80' in msgtext[line] and 'G40' not in msgtext[line] and 'G17' not in msgtext[line]:
-            #         if 'Tap' in last_tool or 'TAP' in last_tool or 'tap' in last_tool:
-            #             tap_append.append((line+2, msgtext[line]))
-            #             dictbin_tapping[last_tool if last_tool else 'blank'] = tap_append
-            #             tap_append = []
-            #             mark_tap = False
-            #             last_tool = ''
-            #     if 'T' in msgtext[line]:
-            #         if 'M06' in msgtext[line] or 'M6' in msgtext[line]:
-            #             tstart = msgtext[line].index('T')
-            #             if '(' in msgtext[line]:
-            #                 dictbin_tools[msgtext[line][tstart:tstart+3]] = msgtext[line][msgtext[line].index('(')+1:msgtext[line].index(')')]
-            #             elif '(' in msgtext[line-1]:
-            #                 dictbin_tools[msgtext[line][tstart:tstart + 3]] = msgtext[line-1]
-            #             last_tool = msgtext[line][tstart:tstart+3] + '-----' + dictbin_tools[msgtext[line][tstart:tstart+3]]
-            #     cursor = 0
-            #     endpoint = 0
-            #     line_num = line + 2
-            #     while endpoint < len(msgtext[line]):
-            #         if endpoint >= len(msgtext[line]):
-            #             break
-            #         elif cursor >= len(msgtext[line]):
-            #             break
-            #         elif msgtext[line][cursor] != ' ' and msgtext[line][0] != '(':
-            #             while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
-            #                 endpoint += 1
-            #             chunk = msgtext[line][cursor:endpoint]
-            #             cursor_add = str(line_num) + '.' + str(cursor)
-            #             endpoint_add = str(line_num) + '.' + str(endpoint)
-            #             dict_addition = [(cursor_add, endpoint_add), msgtext[line][cursor:endpoint]]
-            #             if chunk[0] == 'G' and chunk[1].isnumeric():
-            #                 self.text.tag_add('GCODE', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['G'] += dict_addition
-            #             elif 'X' in chunk or 'Y' in chunk:
-            #                 pass
-            #                 # dictbin_chunks['COORD'] += dict_addition
-            #             elif chunk[0] == 'M' and chunk[1].isnumeric():
-            #                 self.text.tag_add('M', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['M'] += dict_addition
-            #             elif chunk[0] == 'N' and chunk[1].isnumeric():
-            #                 self.text.tag_add('N', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['N'] += dict_addition
-            #             elif chunk[0] == 'T' and chunk[1].isnumeric():
-            #                 self.text.tag_add('T', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['T'] += dict_addition
-            #             elif chunk[0] == 'O' and chunk[1].isnumeric():
-            #                 self.text.tag_add('O', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['O'] += dict_addition
-            #             elif chunk[0] == 'S' and chunk[1].isnumeric():
-            #                 self.text.tag_add('S', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['S'] += dict_addition
-            #             elif chunk[0] == 'F' and chunk[1].isnumeric():
-            #                 self.text.tag_add('F', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['F'] += dict_addition
-            #             elif chunk[0] == 'Z' and chunk[-1].isnumeric():
-            #                 self.text.tag_add('Z', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['Z'] += dict_addition
-            #             elif chunk[0] == 'R' and chunk[-1].isnumeric():
-            #                 self.text.tag_add('R', cursor_add, endpoint_add)
-            #                 # dictbin_chunks['R'] += dict_addition
-            #             cursor = endpoint + 1
-            #             endpoint = cursor + 1
-            #         elif msgtext[cursor] == ' ':
-            #             cursor += 1
-            #             endpoint = cursor + 1
-            #         else:
-            #             cursor += 1
-            #             endpoint = cursor + 1
             dictbin_tools, dictbin_tapping = prettier_it(msg)[0], prettier_it(msg)[1]
             eventlog.generate('tool_list_generated', dictbin_tools)
             eventlog.generate('tapping_list_generated', dictbin_tapping)

@@ -174,9 +174,8 @@ class TappingTab(tk.Frame):
 
                 for tapsize in tap_lookup.keys():
                     if tapsize in comment:
-                        drillmacro['F'] = [tap_lookup[tapsize]]
+                        drillmacro['F'] = tap_lookup[tapsize]
 
-                #
                 for line in payload[key]:
                     code_line = line[1]
                     cursor = 0
@@ -206,13 +205,11 @@ class TappingTab(tk.Frame):
                     cursor += 1
                     endpoint = cursor + 1
 
-
             nonlocal count
             self.toplabel = tk.Label(self, text='Choose Tap', justify='center')
             self.toplabel.grid(column=0, columnspan=2, row=count, sticky='ew')
             count += 1
             for T in final_tap_elements.keys():
-
                 radiolabel = str(T) + 'label'
                 labeltext = str(T) + '-----' + final_tap_elements[T][0]
                 self.radiolabel = tk.Label(self, text=labeltext, justify='left')
@@ -230,17 +227,20 @@ class TappingTab(tk.Frame):
             #TODO edit negative value catch for zdepth
             print(f'{rigid_tappingdict=}')
             for tool, values in rigid_tappingdict.items():
-                start = None
-                stop = None
+                for key, value in tapping_lines.items():
+                    if tool in key:
+                        start = value[0][0]
+                        stop = value[0][1]
+
                 tapping_adjustments = 'G95\n'
                 if values[0] == 'True':
                     tapping_values = final_tap_elements[tool]
-                    print(f'{tapping_values=}')
                     for tool_comment, values in tapping_lines.items():
                         if tool in tool_comment:
                             linesToAdjust = values
+
                 multiplier = rigid_tappingdict[tool][1]
-                print(multiplier)
+                print(f'{multiplier=}')
                 if multiplier == '.33':
                     passes = 3
                 elif multiplier == '.25':
@@ -249,27 +249,21 @@ class TappingTab(tk.Frame):
                     passes = 2
                 elif multiplier == '1.0':
                     pass
+
                 final_depth = float(final_tap_elements[tool][1]['Z'])
-                print(f'{linesToAdjust=}')
-                counter = 0
+
                 for element in linesToAdjust:
 
                     second_element = element[1]
-                    if not start:
-                        start = element[0] + counter
-                    print(f'{element=}')
-                    print(f'{start=}')
                     current_zdepth = float(f'{final_depth / passes:.4f}')
                     if 'G84' in second_element:
                         if 'X' not in second_element and 'Y' not in second_element:
-                            initial_line = f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]['R']} J{final_tap_elements[tool][1]['J'][0]} F{final_tap_elements[tool][1]['F'][0]}'
+                            initial_line = f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"][0]} F{final_tap_elements[tool][1]["F"]}'
                             tapping_adjustments += initial_line + '\n'
                             current_zdepth += float(f'{final_depth / passes:.4f}')
-                            counter += 1
                             while current_zdepth >= final_depth:
-                                tapping_adjustments += f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"][0]} F{final_tap_elements[tool][1]["F"][0]}\n'
+                                tapping_adjustments += f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"][0]} F{final_tap_elements[tool][1]["F"]}\n'
                                 current_zdepth += float(f'{final_depth / passes:.4f}')
-                                counter += 1
                             continue
                         elif 'X' in second_element and 'Y' not in second_element:
                             cursor = element.index('X')
@@ -278,7 +272,6 @@ class TappingTab(tk.Frame):
                             first_half = second_element[:cursor]
                             second_half = f'Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]} F{final_tap_elements[tool][1]["F"]}'
                             initial_line = first_half + second_half
-                            counter += 1
                         elif 'X' not in second_element and 'Y' in second_element:
                             cursor = second_element.index('Y')
                             while second_element[cursor] != ' ':
@@ -286,7 +279,6 @@ class TappingTab(tk.Frame):
                             first_half = second_element[:cursor]
                             second_half = f'Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]} F{final_tap_elements[tool][1]["F"]}'
                             initial_line = first_half + second_half
-                            counter += 1
                         elif 'X' in second_element and 'Y' in second_element:
                             if second_element.index('Y') > second_element.index('X'):
                                 cursor = second_element.index('Y')
@@ -297,7 +289,6 @@ class TappingTab(tk.Frame):
                             first_half = second_element[:cursor]
                             second_half = f'Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]} F{final_tap_elements[tool][1]["F"]}'
                             initial_line = first_half + second_half
-                            counter += 1
                         tapping_adjustments += initial_line + '\n'
                         current_zdepth += float(f'{final_depth / passes:0.4f}')
                         while current_zdepth >= final_depth:
@@ -315,10 +306,6 @@ class TappingTab(tk.Frame):
                         tapping_adjustments += 'G94\n'
                 final_tapping_output[tool] = [(f'{start:.1f}', f'{stop:.1f}'), tapping_adjustments]
             eventlog.generate('replace_text', final_tapping_output)
-            for key, value in final_tapping_output.items():
-                print(f'{key=}')
-                for line in value[1].split('\n'):
-                    print(f'{line=}')
 
         eventlog.listen('confirm_choices_event', confirm_choices_event)
         eventlog.listen('show_tappingtext_event', show_tappingtext_event)
