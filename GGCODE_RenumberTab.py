@@ -32,3 +32,7 @@ class RenumberTab(tk.Frame):
         ren_lbl_4.grid(column=0, row=9, sticky='ew')
         start_entry.grid(column=0, row=10, sticky='w')
         self.grid(column=0, row=0, sticky='nsew')
+
+        self.sendtofile_btn = tk.Button(self, text='Send To File')
+        self.sendtofile_btn.grid(column=0, row=11, sticky='ew')
+        self.grid_rowconfigure(11, uniform='1')
