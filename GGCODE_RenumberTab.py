@@ -2,11 +2,16 @@
 Renumber Tab Class
 """
 import tkinter as tk
+import GGCODE_EventHandler
+
 
 class RenumberTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        v = tk.StringVar(self, value='1')
+
+        eventlog = GGCODE_EventHandler.EventHandler()
+
+        v = tk.StringVar(self)
         ren_lbl_1 = tk.Label(self, text="Please Choose One Renumber Option", justify='center')
         no_radio = tk.Radiobutton(self, text='No Changes', value='1', variable=v)
         remove_radio = tk.Radiobutton(self, text='Remove N Numbers', value='2', variable=v)
@@ -36,3 +41,57 @@ class RenumberTab(tk.Frame):
         self.sendtofile_btn = tk.Button(self, text='Send To File')
         self.sendtofile_btn.grid(column=0, row=11, sticky='ew')
         self.grid_rowconfigure(11, uniform='1')
+
+
+
+        def get_text(event):
+            """
+            This method will get the text from the text pane.
+            :return: text: str
+            """
+            eventlog.generate('send_text', ('1.0', 'end'))
+
+            return text
+
+        self.sendtofile_btn.bind("<Button-1>", get_text)
+
+    def renumber_selection(self):
+        """
+        This method will take the user's input and renumber the gcode file accordingly.
+        :return: None
+        """
+        choice = self.v.get()
+        if choice == '1':
+            print('No Changes')
+            return
+        elif choice == '2':
+            print('Remove N Numbers')
+            text = self.get_text()
+            self.remove_numbers(text)
+        elif choice == '3':
+            print('Renumber All Lines')
+        elif choice == '4':
+            print('Only Tool Changes')
+            pass
+
+    def remove_numbers(self, text: str):
+        """
+        This method will remove all N numbers from the gcode file.
+        :return: None
+        """
+        pass
+
+    def renumber_all(self):
+        """
+        This method will renumber all lines in the gcode file.
+        :return: None
+        """
+        pass
+
+    def only_tools(self):
+        """
+        This method will only renumber tool changes in the gcode file.
+        :return: None
+        """
+        pass
+

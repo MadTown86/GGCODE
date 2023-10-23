@@ -1,6 +1,7 @@
 import tkinter as tk
 import GGCODE_EventHandler
-from tkinter.font import Font
+
+
 class TextWithScrollBars(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,6 +38,14 @@ class TextWithScrollBars(tk.Frame):
         alltaglist = {'GCODE': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [], 'R': []}
 
         self.runonce = False
+
+        def get_text(*args) -> str:
+            start, end = args[0][0], args[0][1]
+            payload = self.text.get(start, end)
+            eventlog.generate('transfer_text', payload)
+
+        def transfer_text(payload):
+            return payload
 
         def replace_text(payload):
             self.text.config(state='normal')
@@ -174,4 +183,6 @@ class TextWithScrollBars(tk.Frame):
             eventlog.generate('tapping_list_generated', dictbin_tapping)
             eventlog.listen('replace_text', replace_text)
 
+        eventlog.listen('transfer_text', transfer_text)
         eventlog.listen('update_text', update_text)
+        eventlog.listen('send_text', get_text)
