@@ -39,15 +39,7 @@ class TextWithScrollBars(tk.Frame):
 
         self.runonce = False
 
-        def get_text(*args) -> str:
-            start, end = args[0][0], args[0][1]
-            payload = self.text.get(start, end)
-            eventlog.generate('transfer_text', payload)
-
-        def transfer_text(payload):
-            return payload
-
-        def replace_text(payload):
+        def replace_tapping_text(payload):
             self.text.config(state='normal')
             for key in payload.keys():
                 start = str(int(self.text.search(key, '1.0', 'end').split('.')[0]) + 3) + '.0'
@@ -65,7 +57,6 @@ class TextWithScrollBars(tk.Frame):
                 for index_value in range(len(alltaglist[key])):
                     self.text.tag_remove(key, alltaglist[key][index_value][0], alltaglist[key][index_value][1])
                 alltaglist[key] = []
-            print(f'{alltaglist=}')
 
         def prettier_it(msg):
             clear_tags()
@@ -114,7 +105,6 @@ class TextWithScrollBars(tk.Frame):
                         while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
                             endpoint += 1
                         chunk = msgtext[line][cursor:endpoint]
-                        print(chunk)
                         if chunk != '%' and len(chunk) == 1:
                             endpoint += 1
                             if msgtext[line][endpoint].isnumeric() or msgtext[line][endpoint] == '.':
@@ -181,8 +171,20 @@ class TextWithScrollBars(tk.Frame):
             dictbin_tools, dictbin_tapping = prettier_it(msg)[0], prettier_it(msg)[1]
             eventlog.generate('tool_list_generated', dictbin_tools)
             eventlog.generate('tapping_list_generated', dictbin_tapping)
-            eventlog.listen('replace_text', replace_text)
+            eventlog.listen('replace_tapping_text', replace_tapping_text)
 
-        eventlog.listen('transfer_text', transfer_text)
+        def update_text_renumbering_event(payload):
+            self.text.config(state="normal")
+            self.text.delete("1.0", "end")
+            self.text.insert("1.0", payload)
+            self.text.config(state="disabled")
+            prettier_it(payload)
+
+        def send_all_text(payload):
+            start, stop = payload[0], payload[1]
+            alltext = self.text.get(start, stop)
+            eventlog.generate('send_all_text', alltext)
+
+        eventlog.listen('get_text', send_all_text)
         eventlog.listen('update_text', update_text)
-        eventlog.listen('send_text', get_text)
+        eventlog.listen('update_text_renumbering_event', update_text_renumbering_event)

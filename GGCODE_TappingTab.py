@@ -265,13 +265,12 @@ class TappingTab(tk.Frame):
                 self.keyradio = tk.Radiobutton(self, text=str(T), value=T, variable=toolvar)
                 self.keyradio.grid(column=0, row=count, sticky='w')
                 count += 1
-            print(f'{final_tap_elements=}')
-            print(f'{tapping_lines=}')
+            # print(f'{final_tap_elements=}')
+            # print(f'{tapping_lines=}')
             add_options()
 
         def adjust_tapping_code(event):
 
-            #TODO edit negative value catch for zdepth
             print(f'{rigid_tappingdict=}')
             for tool, values in rigid_tappingdict.items():
                 for key, value in tapping_lines.items():
@@ -352,7 +351,7 @@ class TappingTab(tk.Frame):
                         tapping_adjustments += 'G80\n'
                         tapping_adjustments += 'G94\n'
                 final_tapping_output[tool] = [(f'{start:.1f}', f'{stop:.1f}'), tapping_adjustments]
-            eventlog.generate('replace_text', final_tapping_output)
+            eventlog.generate('replace_tapping_text', final_tapping_output)
 
         eventlog.listen('confirm_choices_event', confirm_choices_event)
         eventlog.listen('show_tappingtext_event', show_tappingtext_event)
