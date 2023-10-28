@@ -50,7 +50,6 @@ class RenumberTab(tk.Frame):
             This method will get the text from the text pane.
             :return: text: str
             """
-            print('called')
             self.eventlog.generate('get_text', ('1.0', 'end'))
 
         def receive_all_text(payload):
@@ -69,7 +68,7 @@ class RenumberTab(tk.Frame):
         self.eventlog.listen('send_all_text', receive_all_text)
     def renumber_selection(self):
         """
-        This method will take the user's input and renumber the gcode file accordingly.
+        This method receives the user's choice and calls the appropriate method for changing line (N) numbers.
         :return: None
         """
         print('called renumber_selection')

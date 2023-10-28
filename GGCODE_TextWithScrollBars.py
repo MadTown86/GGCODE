@@ -3,6 +3,18 @@ import GGCODE_EventHandler
 
 
 class TextWithScrollBars(tk.Frame):
+    """
+    This class will create a textbox with scrollbars.
+
+    It also has the following methods used for updating the text in the textbox:
+    update_text - initializes the textbox with the contents of the file
+    update_text_renumbering_event - updates the textbox with the contents of the file after renumbering
+    send_all_text - sends all text to the eventlog
+    replace_tapping_text - replaces the tapping text with the new tapping text
+    clear_tags - clears all tags from the textbox
+    prettier_it - prettifies the text in the textbox
+
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.grid_propagate(False)
@@ -40,6 +52,11 @@ class TextWithScrollBars(tk.Frame):
         self.runonce = False
 
         def replace_tapping_text(payload):
+            """
+            This function will update the text in the textbox with the new tapping text
+            :param payload:
+            :return:
+            """
             self.text.config(state='normal')
             for key in payload.keys():
                 start = str(int(self.text.search(key, '1.0', 'end').split('.')[0]) + 3) + '.0'
@@ -53,28 +70,47 @@ class TextWithScrollBars(tk.Frame):
             self.text.config(state='disabled')
 
         def clear_tags():
+            """
+            This function will clear all tags from the text box so that new tags can overwrite upon text updates.
+            :return:
+            """
             for key in alltaglist.keys():
                 for index_value in range(len(alltaglist[key])):
                     self.text.tag_remove(key, alltaglist[key][index_value][0], alltaglist[key][index_value][1])
                 alltaglist[key] = []
 
         def prettier_it(msg):
+            """
+            This function will prettify the text in the textbox and also generates dictbin_tapping and dictbin_tools
+            :param msg:
+            :return: dictbin_tools, dictbin_tapping
+            """
+            # clear_tags() clears existing foreground color elements from textbox for rewrite
             clear_tags()
             msgtext = msg.split('\n')
-            dictbin_chunks = {'G': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [],
-                              'R': []}
+
+            # This dictionary is sent to tapping_tab in an event generation
             dictbin_tapping = {}
+
+            # This dictionary is sent to the tool_tab in an event generation
             dictbin_tools = {}
+
+            # mark_tap is a boolean that marks the beginning of a tapping cycle and reset once G80 is found
             mark_tap = False
             tap_append = []
-            tool_append = []
             last_tool = ''
-            add_line = ''
+
+            # Parse through document by indexed line soas to have the 'line' number for each line
             for line in range(len(msgtext)):
+                # Raise tapping flag when G84 is found and making sure a tool was found prior
                 if 'G84' in msgtext[line] and last_tool != 'blank':
                     mark_tap = True
+                # Continues to append tapping lines until G80 is found
                 if mark_tap and 'G80' not in msgtext[line]:
                     tap_append.append((line + 2, msgtext[line]))
+
+                # Ensuring that the G80 found belongs to a tapping macro and not a 'reset modal parameters line'
+                # Populates dictbin_tapping, which is sent to tapping_tab
                 if 'G80' in msgtext[line] and 'G40' not in msgtext[line] and 'G17' not in msgtext[line]:
                     if 'Tap' in last_tool or 'TAP' in last_tool or 'tap' in last_tool:
                         tap_append.append((line + 2, msgtext[line]))
@@ -82,6 +118,8 @@ class TextWithScrollBars(tk.Frame):
                         tap_append = []
                         mark_tap = False
                         last_tool = ''
+
+                # Isolates tool information and adds to dictbin_tools
                 if 'T' in msgtext[line]:
                     if 'M06' in msgtext[line] or 'M6' in msgtext[line]:
                         tstart = msgtext[line].index('T')
@@ -93,6 +131,8 @@ class TextWithScrollBars(tk.Frame):
                             dictbin_tools[msgtext[line][tstart:tstart + 3]] = msgtext[line - 1]
                         last_tool = msgtext[line][tstart:tstart + 3] + '-----' + dictbin_tools[
                             msgtext[line][tstart:tstart + 3]]
+
+                # The following section prettifies the text in the textbox
                 cursor = 0
                 endpoint = 0
                 line_num = line + 1
@@ -170,10 +210,19 @@ class TextWithScrollBars(tk.Frame):
 
             dictbin_tools, dictbin_tapping = prettier_it(msg)[0], prettier_it(msg)[1]
             eventlog.generate('tool_list_generated', dictbin_tools)
+
+            # tapping_list_generated is listened to by tapping_tab
             eventlog.generate('tapping_list_generated', dictbin_tapping)
+
+            # replace_tapping_text is generated by tapping_tab
             eventlog.listen('replace_tapping_text', replace_tapping_text)
 
         def update_text_renumbering_event(payload):
+            """
+            This function updates file_textbox with contents of payload that has been renumbered.
+            :param payload: 'str' of renumbered file contents
+            :return:
+            """
             self.text.config(state="normal")
             self.text.delete("1.0", "end")
             self.text.insert("1.0", payload)
@@ -181,6 +230,11 @@ class TextWithScrollBars(tk.Frame):
             prettier_it(payload)
 
         def send_all_text(payload):
+            """
+            This function sends all text to the eventlog.
+            :param payload:
+            :return:
+            """
             start, stop = payload[0], payload[1]
             alltext = self.text.get(start, stop)
             eventlog.generate('send_all_text', alltext)

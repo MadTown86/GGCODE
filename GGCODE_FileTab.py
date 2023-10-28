@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog as fd
+from tkinter import ttk
 import GGCODE_EventHandler
 import signal
 class FileTab(tk.Frame):
@@ -11,7 +12,7 @@ class FileTab(tk.Frame):
         browse_lbl = tk.Label(self, text='Please Choose An *.NC File Or Equivalent', justify='left')
         browse_btn = tk.Button(self, text='Browse', justify='left', pady=10)
         show_contentslbl = tk.Label(self, text='Click To Show File Contents', justify='left')
-        contents_btn = tk.Button(self, text='Show Contents', justify='left', pady=10, state='disabled')
+        contents_btn = ttk.Button(self, text='Show Contents', state='disabled')
 
         browse_lbl.grid(column=0, row=0, sticky='ew')
         browse_btn.grid(column=0, row=1, sticky='w')
@@ -21,6 +22,11 @@ class FileTab(tk.Frame):
         self.grid(column=0, row=0, sticky='nsew')
 
         def select_file(SelectFileEvent):
+            """
+            This method will open a file dialog and allow the user to select a file.
+            :param SelectFileEvent:
+            :return:
+            """
             self.rawfile = fd.askopenfile()
             if self.rawfile is not None:
                 rawfile = self.rawfile
@@ -28,19 +34,28 @@ class FileTab(tk.Frame):
                 eventlog.generate('show_contents_event', 'normal')
 
         browse_btn.bind("<Button 1>", select_file)
-        def activate_content(payload):
-            contents_btn.config(state=payload)
 
+
+        def activate_content(payload):
+            """
+            This method will activate the contents button.
+            :param payload:
+            :return:
+            """
+            contents_btn.config(state=payload)
+            contents_btn.bind("<Button-1>", show_contents)
         def show_contents(Event):
             for kind in eventlog.listeners:
                 print(f'{kind=}')
             if self.rawfile:
                 eventlog.generate('update_text', self.rawfile.read())
+                contents_btn.state(statespec=['disabled'])
 
         def disable_show(payload):
             contents_btn.config(state=payload)
+            contents_btn.unbind("<Button-1>")
 
-        contents_btn.bind("<Button-1>", show_contents)
+
         eventlog.listen('show_contents_event', activate_content)
         eventlog.listen('disable_show', disable_show)
 
