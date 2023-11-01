@@ -239,6 +239,35 @@ class TextWithScrollBars(tk.Frame):
             alltext = self.text.get(start, stop)
             eventlog.generate('send_all_text', alltext)
 
+        def update_tooling_text(payload):
+            """
+            This function updates the text in the textbox with the new tooling text
+            :param payload:
+            :return:
+            """
+            self.text.config(state='normal')
+            text = self.text.get('1.0', 'end').split('\n')
+            if payload[0]:
+                cursor = 0
+                for line in range(len(text)):
+                    current_char = text[line][cursor]
+                    if current_char == 'O':
+                        continue
+                    elif current_char == '':
+                        self.text.insert(f'{line + 1}.0', payload[0])
+                        break
+                    elif current_char == '(':
+                        continue
+                    else:
+                        print('Could Not Enter Text')
+            if payload[1]:
+                for key, value in payload[1].items():
+                    tool_change_count = te
+
+
+            self.text.config(state='disabled')
+
         eventlog.listen('get_text', send_all_text)
         eventlog.listen('update_text', update_text)
         eventlog.listen('update_text_renumbering_event', update_text_renumbering_event)
+        eventlog.listen('send_changes_to_file', update_tooling_text)
