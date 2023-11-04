@@ -35,7 +35,10 @@ class ToolTab(tk.Frame):
         rowcount += 1
         self.tool_list_lbl = tk.Label(self, text='Tool List', justify='center')
         self.tool_list_lbl.grid(column=0, row=rowcount, sticky='ew')
+        self.toolchange_lbl = tk.Label(self, text='Tool Number Change', justify='center')
+        self.toolchange_lbl.grid(column=2, columnspan=2, row=rowcount, sticky='ew')
         rowcount += 1
+
 
 
 
@@ -140,16 +143,28 @@ class ToolTab(tk.Frame):
             # Modify tool_list dictionary to concatenate the different string variables into one string
             tool_comment_dict = {}
 
-            tool_list_text = '\n TOOL LIST:::\n'
-            for key, value in tool_list:
-                tool_list_text += f'({key} : '
-                for key2, value2 in value:
-                    tool_list_text += f'{key2}-{value2} '
-                tool_list_text += ')\n'
-
+            if not tool_list:
+                self.tooltext_box.config(state='normal')
+                self.tooltext_box.delete('1.0', 'end')
+                self.tooltext_box.insert('end', 'No Tool Data To Send')
+                self.tooltext_box.config(state='disabled')
             else:
-                tool_list_text = None
-            eventlog.generate('send_changes_to_file', (tool_list_text, tool_list))
+                tool_list_text = '\n TOOL LIST:::\n'
+                for key, value in tool_list.items():
+                    print(f'{key=}')
+                    print(f'{value=}')
+                    tool_list_text += f'({key} : '
+                    for key2, value2 in value.items():
+                        print(f'{key2=}')
+                        print(f'{value2=}')
+                        tool_list_text += f'{key2}-{value2} '
+                    tool_list_text += ')\n'
+
+                else:
+                    tool_list_text = None
+                eventlog.generate('send_changes_to_file', (tool_list_text, tool_list))
+
+                print(f'{tool_list_text=}')
 
 
         def add_tool_entries(payload):
@@ -160,6 +175,8 @@ class ToolTab(tk.Frame):
                 self.radio_lbl = (
                     Radiobutton(self, text=key + ' ' + value, value=btn_return_value, variable=self.current_toolvar))
                 self.radio_lbl.grid(column=0, row=rowcount, sticky='ew')
+                self.toolchange_lbl = tk.Label(self, text='', name=str(key).lower(), justify='center', padx=5)
+                self.toolchange_lbl.grid(column=2, columnspan=2, row=rowcount, sticky='ew')
                 rowcount += 1
             self.blank_lbl = tk.Label(self, text='', justify='center', background=bg_color)
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
@@ -169,6 +186,16 @@ class ToolTab(tk.Frame):
         def udpate_tool_event(event):
             tool_id = 'T' + str(self.current_toolvar.get())
             tool_number = self.update_tool_number_entry.get()
+            if tool_id[1:] != tool_number:
+                for widget in self.winfo_children():
+                    if isinstance(widget, tk.Label):
+                        if widget.winfo_name() == tool_id.lower():
+                            widget.config(text=f'-> T{tool_number}')
+            else:
+                for widget in self.winfo_children():
+                    if isinstance(widget, tk.Label):
+                        if widget.winfo_name() == tool_id.lower():
+                            widget.config(text=f'\'\' No Change \'\'')
             diameter = self.update_tool_diameter_entry.get()
             length_of_cut = self.update_loc_entry.get()
             flutes = self.update_flutes_entry.get()
@@ -189,6 +216,7 @@ class ToolTab(tk.Frame):
             for key, value in tool_list.items():
                 self.tooltext_box.insert('end', f'{key} {value}\n')
             self.tooltext_box.config(state='disabled')
+
 
 
 
