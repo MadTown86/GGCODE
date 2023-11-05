@@ -13,6 +13,7 @@ class ToolTab(tk.Frame):
         tool_list = {}
         tool_type_choices = ['DRILL', 'RTAP', 'LTAP', 'ENDMILL', 'BALL', 'CHAMFER', 'SPOT', 'CENTER', 'CSINK', 'BULL',
                              'DOVE', 'RADIUS', 'TAPER', 'BORING', 'REAMER', 'ENGRAVE']
+        radiobuttons = {}
 
 
         xscrollbar = tk.Scrollbar(self, orient="horizontal")
@@ -138,6 +139,18 @@ class ToolTab(tk.Frame):
 
             self.send_changes_btn.bind('<Button-1>', send_changes_to_file)
 
+        def select_radiobutton(event):
+            selection = self.current_toolvar.get()
+            if selection == 0:
+                radiobuttons['1'].invoke()
+            elif selection == 4:
+                radiobuttons['1'].invoke()
+            else:
+                radiobuttons[str(selection + 1)].invoke()
+
+        self.bind('<MouseWheel>', select_radiobutton)
+
+
         def send_changes_to_file(event):
             print('send_changes_to_file called')
             # Modify tool_list dictionary to concatenate the different string variables into one string
@@ -149,20 +162,17 @@ class ToolTab(tk.Frame):
                 self.tooltext_box.insert('end', 'No Tool Data To Send')
                 self.tooltext_box.config(state='disabled')
             else:
-                tool_list_text = '\n TOOL LIST:::\n'
                 for key, value in tool_list.items():
-                    print(f'{key=}')
-                    print(f'{value=}')
-                    tool_list_text += f'({key} : '
+                    tool_list_text = ''
                     for key2, value2 in value.items():
-                        print(f'{key2=}')
-                        print(f'{value2=}')
+                        if key2 == 'T':
+                            tool_list_text += f'{key2}:{value2} :'
                         tool_list_text += f'{key2}-{value2} '
-                    tool_list_text += ')\n'
-
+                    tool_list_text += ')'
+                    tool_comment_dict[key] = tool_list_text
                 else:
                     tool_list_text = None
-                eventlog.generate('send_changes_to_file', (tool_list_text, tool_list))
+                eventlog.generate('send_changes_to_file', (tool_comment_dict, tool_list))
 
                 print(f'{tool_list_text=}')
 
@@ -171,9 +181,12 @@ class ToolTab(tk.Frame):
             nonlocal rowcount
             for key, value in payload.items():
                 btn_return_value = key[1:]
+                radio_count = 1
                 radio_lbl = str(key) + 'label'
                 self.radio_lbl = (
                     Radiobutton(self, text=key + ' ' + value, value=btn_return_value, variable=self.current_toolvar))
+                radiobuttons[btn_return_value] = self.radio_lbl
+                radio_count += 1
                 self.radio_lbl.grid(column=0, row=rowcount, sticky='ew')
                 self.toolchange_lbl = tk.Label(self, text='', name=str(key).lower(), justify='center', padx=5)
                 self.toolchange_lbl.grid(column=2, columnspan=2, row=rowcount, sticky='ew')
@@ -189,12 +202,12 @@ class ToolTab(tk.Frame):
             if tool_id[1:] != tool_number:
                 for widget in self.winfo_children():
                     if isinstance(widget, tk.Label):
-                        if widget.winfo_name() == tool_id.lower():
+                        if tool_id.lower() in widget.winfo_name():
                             widget.config(text=f'-> T{tool_number}')
             else:
                 for widget in self.winfo_children():
                     if isinstance(widget, tk.Label):
-                        if widget.winfo_name() == tool_id.lower():
+                        if tool_id.lower() in widget.winfo_name():
                             widget.config(text=f'\'\' No Change \'\'')
             diameter = self.update_tool_diameter_entry.get()
             length_of_cut = self.update_loc_entry.get()

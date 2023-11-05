@@ -88,6 +88,7 @@ class TextWithScrollBars(tk.Frame):
             # clear_tags() clears existing foreground color elements from textbox for rewrite
             clear_tags()
             msgtext = msg.split('\n')
+            print(msgtext)
 
             # This dictionary is sent to tapping_tab in an event generation
             dictbin_tapping = {}
@@ -121,16 +122,28 @@ class TextWithScrollBars(tk.Frame):
 
                 # Isolates tool information and adds to dictbin_tools
                 if 'T' in msgtext[line]:
+                    print(f'PRETTIER T: {msgtext[line]}')
+                    print(f'{dictbin_tools=}')
                     if 'M06' in msgtext[line] or 'M6' in msgtext[line]:
                         tstart = msgtext[line].index('T')
+                        stop = tstart + 1
+                        while stop < len(msgtext[line]) and msgtext[line][stop].isnumeric():
+                            stop += 1
+                        if stop < len(msgtext[line]):
+                            tool = msgtext[line][tstart:stop]
+                        else:
+                            tool = msgtext[line][tstart:]
+                        print(f'{tool=}')
                         if '(' in msgtext[line]:
-                            dictbin_tools[msgtext[line][tstart:tstart + 3]] = msgtext[line][
-                                                                              msgtext[line].index('(') + 1:msgtext[
+                            dictbin_tools[tool] = msgtext[line][
+                                                                              msgtext[line].index('('):msgtext[
                                                                                   line].index(')')+1]
-                        elif '(' in msgtext[line - 1]:
-                            dictbin_tools[msgtext[line][tstart:tstart + 3]] = msgtext[line - 1]
-                        last_tool = msgtext[line][tstart:tstart + 3] + '-----' + dictbin_tools[
-                            msgtext[line][tstart:tstart + 3]]
+                        elif msgtext[line-1] and '(' in msgtext[line - 1][0]:
+                            dictbin_tools[tool] = msgtext[line - 1]
+                        for key in dictbin_tools.keys():
+                            print(f'{key=}')
+                        last_tool = msgtext[line][tstart:stop] + '-----' + dictbin_tools[
+                            msgtext[line][tstart:stop]]
 
                 # The following section prettifies the text in the textbox
                 cursor = 0
@@ -247,24 +260,58 @@ class TextWithScrollBars(tk.Frame):
             """
             self.text.config(state='normal')
             text = self.text.get('1.0', 'end').split('\n')
-            if payload[0]:
-                cursor = 0
-                for line in range(len(text)):
-                    current_char = text[line][cursor]
-                    if current_char == 'O':
-                        continue
-                    elif current_char == '':
-                        self.text.insert(f'{line + 1}.0', payload[0])
-                        break
-                    elif current_char == '(':
-                        continue
+            insert_bulk_comment_flag = bool(payload[0])
+
+            # If checkbox 'Add Tool Comments' then add tool comments
+            org_len = len(text)
+            for line in range(len(text)):
+                line = line + len(text) - org_len
+                if len(text[line]) > 0:
+                    if text[line][0] == 'O' and insert_bulk_comment_flag:
+                        tool_comments = '\n (**TOOL LIST**) \n'
+                        for key, value in payload[0].items():
+                            tool_comments += f'({value}\n'
+                        tool_comments += '(** END TOOL LIST **)\n'
+                        tool_comments = tool_comments.split('\n')
+                        for index in range(len(tool_comments)-1, 0, -1):
+                            text.insert(line + 1, tool_comments[index])
+                if 'T' in text[line] and 'M06' in text[line] or 'M6' in text[line]:
+                    start = text[line].index('T')
+                    stop = start + 1
+                    while stop < len(text[line]) and text[line][stop].isnumeric():
+                        stop += 1
+                    if stop < len(text[line]):
+                        org_tool = text[line][start:stop]
                     else:
-                        print('Could Not Enter Text')
-            if payload[1]:
-                for key, value in payload[1].items():
-                    tool_change_count = te
+                        org_tool = text[line][start:]
+                    print(f'ORG TOOL: {org_tool}')
+                    for tool_id in payload[1].keys():
+                        if org_tool in tool_id:
+                            text[line] = text[line][:start+1] + payload[1][org_tool]['T']
+                            if len(text[line-1]) > 0 and text[line-1][0] == '(':
+                                text[line-1] = f'({payload[0][org_tool]}'
+                            elif len(text[line-1]) > 0 and text[line-1][0] != '(':
+                                text.insert(line, '\n')
+                                text.insert(line, f'({payload[0][org_tool]}')
+                            else:
+                                text.insert(line, f'({payload[0][org_tool]}')
+                if 'H' in text[line] and '(' not in text[line]:
+                    hindex = text[line].index('H')
+                    hend = hindex + 1
+                    while text[line][hend].isnumeric():
+                        hend += 1
+                    text[line] = f'{text[line][:hend-1]}{payload[1][org_tool]['T']}{text[line][hend:]}'
+                if 'D' in text[line] and '(' not in text[line]:
+                    dindex = text[line].index('D')
+                    dend = dindex + 1
+                    while text[line][dend].isnumeric():
+                        dend += 1
+                    text[line] = f'{text[line][:dend-1]}{payload[1][org_tool]["T"]}{text[line][dend:]}'
 
-
+            updated_text = '\n'.join(text)
+            self.text.delete('1.0', 'end')
+            self.text.insert('1.0', updated_text)
+            prettier_it(updated_text)
             self.text.config(state='disabled')
 
         eventlog.listen('get_text', send_all_text)

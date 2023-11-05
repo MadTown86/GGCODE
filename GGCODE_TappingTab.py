@@ -4,7 +4,7 @@ import GGCODE_EventHandler
 
 class TappingTab(tk.Frame):
     """
-    This class will create a tab that will allow the user to select a tapping tool and then select options for
+    This class will create a tab that allows the user to select a tapping tool and then select options for
     rigid tapping.
 
     The methods in this class are as follows:
@@ -20,6 +20,7 @@ class TappingTab(tk.Frame):
         true_falsevar = tk.StringVar()
         depthvar = tk.StringVar()
         toolvar = tk.StringVar()
+        radiobuttons = {}
 
         # Format {'T#': ['True/False', 'Depth Increment Chosen']}
         rigid_tappingdict = {}
@@ -329,6 +330,7 @@ class TappingTab(tk.Frame):
                 self.radiolabel.grid(column=1, row=count, sticky='w')
                 keyradio = str(T) + '_radio'
                 self.keyradio = tk.Radiobutton(self, text=str(T), value=T, variable=toolvar)
+                radiobuttons[keyradio] = self.keyradio
                 self.keyradio.grid(column=0, row=count, sticky='w')
                 count += 1
             print(f'{final_tap_elements=}')
@@ -336,6 +338,9 @@ class TappingTab(tk.Frame):
 
             # After all tool data is added to the tapping tab, the options are added
             add_options()
+
+        def update_tool_radiobuttons(payload):
+            for old_tool, new_tool in payload.items():
 
         def adjust_tapping_code(event):
             """
