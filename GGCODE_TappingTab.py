@@ -341,6 +341,7 @@ class TappingTab(tk.Frame):
 
         def update_tool_radiobuttons(payload):
             for old_tool, new_tool in payload.items():
+                pass
 
         def adjust_tapping_code(event):
             """

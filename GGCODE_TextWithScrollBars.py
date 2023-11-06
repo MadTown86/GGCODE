@@ -138,12 +138,18 @@ class TextWithScrollBars(tk.Frame):
                             dictbin_tools[tool] = msgtext[line][
                                                                               msgtext[line].index('('):msgtext[
                                                                                   line].index(')')+1]
-                        elif msgtext[line-1] and '(' in msgtext[line - 1][0]:
-                            dictbin_tools[tool] = msgtext[line - 1]
-                        for key in dictbin_tools.keys():
-                            print(f'{key=}')
+                        elif msgtext[line-1] and '(' in msgtext[line - 1][0] and ')' in msgtext[line - 1][-1]:
+                            dictbin_tools[tool] = msgtext[line - 1][msgtext[line-1].index('('):]
+                        else:
+                            dictbin_tools[tool] = 'No Tool Comment'
+
                         last_tool = msgtext[line][tstart:stop] + '-----' + dictbin_tools[
                             msgtext[line][tstart:stop]]
+
+                # Skipping comment lines
+                if '(' in msgtext[line] and ')' in msgtext[line] and 'T' not in msgtext[line]:
+                    continue
+
 
                 # The following section prettifies the text in the textbox
                 cursor = 0
@@ -157,13 +163,19 @@ class TextWithScrollBars(tk.Frame):
                     elif msgtext[line][cursor] != ' ' and msgtext[line][0] != '(':
                         while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
                             endpoint += 1
-                        chunk = msgtext[line][cursor:endpoint]
+                        if endpoint >= len(msgtext[line]):
+                            chunk = msgtext[line][cursor:]
+                        else:
+                            chunk = msgtext[line][cursor:endpoint]
                         if chunk != '%' and len(chunk) == 1:
                             endpoint += 1
                             if msgtext[line][endpoint].isnumeric() or msgtext[line][endpoint] == '.':
-                                while msgtext[line][endpoint] != ' ':
+                                while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
                                     endpoint += 1
-                                chunk = msgtext[line][cursor:endpoint].replace(' ', '')
+                                if endpoint >= len(msgtext[line]):
+                                    chunk = msgtext[line]
+                                else:
+                                    chunk = msgtext[line][cursor:endpoint].replace(' ', '')
                         cursor_add = str(line_num) + '.' + str(cursor)
                         endpoint_add = str(line_num) + '.' + str(endpoint)
 
@@ -261,6 +273,8 @@ class TextWithScrollBars(tk.Frame):
             self.text.config(state='normal')
             text = self.text.get('1.0', 'end').split('\n')
             insert_bulk_comment_flag = bool(payload[0])
+            org_tool = None
+            update_flag = False
 
             # If checkbox 'Add Tool Comments' then add tool comments
             org_len = len(text)
@@ -276,6 +290,7 @@ class TextWithScrollBars(tk.Frame):
                         for index in range(len(tool_comments)-1, 0, -1):
                             text.insert(line + 1, tool_comments[index])
                 if 'T' in text[line] and 'M06' in text[line] or 'M6' in text[line]:
+                    update_flag = False
                     start = text[line].index('T')
                     stop = start + 1
                     while stop < len(text[line]) and text[line][stop].isnumeric():
@@ -287,26 +302,58 @@ class TextWithScrollBars(tk.Frame):
                     print(f'ORG TOOL: {org_tool}')
                     for tool_id in payload[1].keys():
                         if org_tool in tool_id:
+                            update_flag = True
                             text[line] = text[line][:start+1] + payload[1][org_tool]['T']
-                            if len(text[line-1]) > 0 and text[line-1][0] == '(':
-                                text[line-1] = f'({payload[0][org_tool]}'
-                            elif len(text[line-1]) > 0 and text[line-1][0] != '(':
-                                text.insert(line, '\n')
-                                text.insert(line, f'({payload[0][org_tool]}')
-                            else:
-                                text.insert(line, f'({payload[0][org_tool]}')
-                if 'H' in text[line] and '(' not in text[line]:
-                    hindex = text[line].index('H')
-                    hend = hindex + 1
-                    while text[line][hend].isnumeric():
-                        hend += 1
-                    text[line] = f'{text[line][:hend-1]}{payload[1][org_tool]['T']}{text[line][hend:]}'
-                if 'D' in text[line] and '(' not in text[line]:
-                    dindex = text[line].index('D')
-                    dend = dindex + 1
-                    while text[line][dend].isnumeric():
-                        dend += 1
-                    text[line] = f'{text[line][:dend-1]}{payload[1][org_tool]["T"]}{text[line][dend:]}'
+                            if payload[1][org_tool]['UPDATEBOOL']:
+                                if len(text[line-1]) > 0 and text[line-1][0] == '(':
+                                    text[line-1] = f'({payload[0][org_tool]}'
+                                elif len(text[line-1]) > 0 and text[line-1][0] != '(':
+                                    text.insert(line, '\n')
+                                    text.insert(line, f'({payload[0][org_tool]}')
+                                else:
+                                    text.insert(line, f'({payload[0][org_tool]}')
+                        else:
+                            continue
+                if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
+                    start = text[line].index('T')
+                    stop = start + 1
+                    while stop < len(text[line]) and text[line][stop].isnumeric():
+                        stop += 1
+                    if stop < len(text[line]):
+                        next_tool = text[line][start:stop]
+                    else:
+                        next_tool = text[line][start:]
+                    print(f'ORG TOOL: {org_tool}')
+                    for tool_id in payload[1].keys():
+                        if next_tool in tool_id:
+                            text[line] = text[line][:start+1] + payload[1][next_tool]['T']
+                            if payload[1][next_tool]['UPDATEBOOL']:
+                                if len(text[line-1]) > 0 and text[line-1][0] == '(':
+                                    text[line-1] = f'({payload[0][next_tool]}'
+                                elif len(text[line-1]) > 0 and text[line-1][0] != '(':
+                                    text.insert(line, '\n')
+                                    text.insert(line, f'({payload[0][next_tool]}')
+                                else:
+                                    text.insert(line, f'({payload[0][next_tool]}')
+                        else:
+                            continue
+                if update_flag:
+                    if 'H' in text[line] and '(' not in text[line]:
+                        hindex = text[line].index('H')
+                        hend = hindex + 1
+                        while hend < len(text[line]) and text[line][hend].isnumeric():
+                            hend += 1
+                        if hend >= len(text[line]):
+                            hend -= 1
+                        if payload[1][org_tool]['T'] != org_tool[1:]:
+                            text[line] = f'{text[line][:hindex+1]}{payload[1][org_tool]['T']}{text[line][hend:]}'
+                    if 'D' in text[line] and '(' not in text[line]:
+                        dindex = text[line].index('D')
+                        dend = dindex + 1
+                        while text[line][dend].isnumeric():
+                            dend += 1
+                        if payload[1][org_tool]['T'] != org_tool[1:]:
+                            text[line] = f'{text[line][:dindex+1]}{payload[1][org_tool]["T"]}{text[line][dend:]}'
 
             updated_text = '\n'.join(text)
             self.text.delete('1.0', 'end')

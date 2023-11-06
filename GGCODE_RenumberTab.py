@@ -60,8 +60,6 @@ class RenumberTab(tk.Frame):
             """
             self.text = payload
             print('received text')
-            for line in self.text.split('\n'):
-                print(f'{line=}')
             self.renumber_selection()
 
         self.sendtofile_btn.bind("<Button-1>", get_text)
@@ -165,6 +163,9 @@ class RenumberTab(tk.Frame):
                         endpoint += 1
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line[endpoint:] + '\n'
                     current_number += increment
+            elif '(' in current_line and ')' in current_line and 'M06' not in current_line or 'M6' not in current_line:
+                return_text += current_line + '\n'
+                continue
             else:
                 if current_number <= int(maxn):
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
@@ -175,8 +176,6 @@ class RenumberTab(tk.Frame):
                     current_number += increment
         print('\n')
         print('renumber all print')
-        for line in return_text.split('\n'):
-            print(f'{line=}')
         self.eventlog.generate('update_text_renumbering_event', return_text)
 
 
@@ -219,7 +218,7 @@ class RenumberTab(tk.Frame):
                         current_number += increment
                 else:
                     return_text += current_line[endpoint:] + '\n'
-            elif 'T' in current_line and 'M' in current_line:
+            elif 'T' in current_line and 'M6' in current_line or 'M06' in current_line:
                 if current_number <= int(maxn):
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
                     current_number += increment
