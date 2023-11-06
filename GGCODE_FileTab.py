@@ -12,7 +12,7 @@ class FileTab(tk.Frame):
         browse_lbl = tk.Label(self, text='Please Choose An *.NC File Or Equivalent', justify='left')
         browse_btn = tk.Button(self, text='Browse', justify='left', pady=10)
         show_contentslbl = tk.Label(self, text='Click To Show File Contents', justify='left')
-        contents_btn = ttk.Button(self, text='Show Contents', state='disabled')
+        contents_btn = ttk.Button(self, text='Initial Scan', state='disabled')
 
         browse_lbl.grid(column=0, row=0, sticky='ew')
         browse_btn.grid(column=0, row=1, sticky='w')

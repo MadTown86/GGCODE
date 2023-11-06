@@ -109,7 +109,6 @@ class RenumberTab(tk.Frame):
             if len(line) > 1:
                 if line[0] == 'N':
                     while line[endpoint].isnumeric():
-                        print(f'{line[endpoint]=}')
                         endpoint += 1
                     if line[endpoint] == ' ':
                         endpoint += 1
@@ -131,6 +130,8 @@ class RenumberTab(tk.Frame):
         split_text = self.text.split('\n')
         for line_index in range(len(split_text)):
             current_line = split_text[line_index]
+            print(f'{current_line=}')
+            # print(f'{len(return_text)=}')
             leading_zero_length = len(maxn) - len(str(current_number))
             leading_zeroes = '0' * leading_zero_length
 
@@ -163,9 +164,13 @@ class RenumberTab(tk.Frame):
                         endpoint += 1
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line[endpoint:] + '\n'
                     current_number += increment
-            elif '(' in current_line and ')' in current_line and 'M06' not in current_line or 'M6' not in current_line:
-                return_text += current_line + '\n'
-                continue
+            elif '(' in current_line and ')' in current_line:
+                if 'M06' not in current_line and 'M6' not in current_line:
+                    return_text += current_line + '\n'
+                    continue
+                else:
+                    return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
+                    current_number += increment
             else:
                 if current_number <= int(maxn):
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
@@ -174,8 +179,9 @@ class RenumberTab(tk.Frame):
                     current_number = int(start)
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
                     current_number += increment
-        print('\n')
-        print('renumber all print')
+        # print('\n')
+        # print('renumber all print')
+        # print(f'{return_text=}')
         self.eventlog.generate('update_text_renumbering_event', return_text)
 
 

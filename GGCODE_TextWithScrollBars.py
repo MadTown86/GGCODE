@@ -88,7 +88,7 @@ class TextWithScrollBars(tk.Frame):
             # clear_tags() clears existing foreground color elements from textbox for rewrite
             clear_tags()
             msgtext = msg.split('\n')
-            print(msgtext)
+            # print(msgtext)
 
             # This dictionary is sent to tapping_tab in an event generation
             dictbin_tapping = {}
@@ -122,8 +122,8 @@ class TextWithScrollBars(tk.Frame):
 
                 # Isolates tool information and adds to dictbin_tools
                 if 'T' in msgtext[line]:
-                    print(f'PRETTIER T: {msgtext[line]}')
-                    print(f'{dictbin_tools=}')
+                    # print(f'PRETTIER T: {msgtext[line]}')
+                    # print(f'{dictbin_tools=}')
                     if 'M06' in msgtext[line] or 'M6' in msgtext[line]:
                         tstart = msgtext[line].index('T')
                         stop = tstart + 1
@@ -299,7 +299,6 @@ class TextWithScrollBars(tk.Frame):
                         org_tool = text[line][start:stop]
                     else:
                         org_tool = text[line][start:]
-                    print(f'ORG TOOL: {org_tool}')
                     for tool_id in payload[1].keys():
                         if org_tool in tool_id:
                             update_flag = True
@@ -323,7 +322,6 @@ class TextWithScrollBars(tk.Frame):
                         next_tool = text[line][start:stop]
                     else:
                         next_tool = text[line][start:]
-                    print(f'ORG TOOL: {org_tool}')
                     for tool_id in payload[1].keys():
                         if next_tool in tool_id:
                             text[line] = text[line][:start+1] + payload[1][next_tool]['T']
