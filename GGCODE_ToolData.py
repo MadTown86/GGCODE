@@ -12,8 +12,8 @@ class ToolTab(tk.Frame):
         eventlog = GGCODE_EventHandler.EventHandler()
         bg_color = '#D98E04'
         tool_list = {}
-        tool_type_choices = ['DRILL', 'RTAP', 'LTAP', 'ENDMILL', 'BALL', 'CHAMFER', 'SPOT', 'CENTER', 'CSINK', 'BULL',
-                             'DOVE', 'RADIUS', 'TAPER', 'BORING', 'REAMER', 'ENGRAVE']
+        tool_type_choices = ['DRILL', 'RTAP', 'LTAP', 'SHELL', 'ENDMILL', 'BALL', 'CHAMFER', 'SPOT', 'CENTER', 'CSINK', 'BULL',
+                             'DOVE', 'RADIUS', 'TAPER', 'BORING', 'REAMER', 'ENGRAVE', 'PROBE']
         radiobuttons = {}
         radiobutton_checkboxes = {}
 
@@ -25,25 +25,19 @@ class ToolTab(tk.Frame):
         tool_commentvar = tk.BooleanVar()
         tool_commentvar.set(False)
 
-        self.tool_canvas = tk.Canvas(self, width=500, height=200, bg='white')
-        self.xcanvasscrollbar = tk.Scrollbar(self.tool_canvas, orient="horizontal")
-        self.ycanvascrollbar = tk.Scrollbar(self.tool_canvas, orient="vertical")
-        self.tool_canvas.config(scrollregion=self.tool_canvas.bbox("all"), xscrollcommand=self.xcanvasscrollbar.set,
-                                yscrollcommand=self.ycanvascrollbar.set)
+        xscrollbar = Scrollbar(self, orient='horizontal')
+        yscrollbar = Scrollbar(self, orient='vertical')
+        yscrollbar_canvas = Scrollbar(self, orient='vertical')
 
-        xscrollbar = tk.Scrollbar(self, orient="horizontal")
-        yscrollbar = tk.Scrollbar(self, orient="vertical")
+        self.scrollable_frame = Canvas(self, bg='white', width=600, height=200, scrollregion=(0, 0, 1000, 1000),
+                                       yscrollcommand=yscrollbar_canvas.set)
+        self.canvas_frame = tk.Frame(self.scrollable_frame, bg='white', width=1000, height=1000)
+        self.scrollable_frame.create_window((0, 0), window=self.canvas_frame, anchor='nw')
+        self.canvas_frame.propagate(False)
+        self.scrollable_frame.grid_propagate(False)
+        self.scrollable_frame.propagate(False)
+        yscrollbar_canvas.config(command=self.scrollable_frame.yview)
 
-
-        self.tool_canvas.propagate(False)
-        self.tool_canvas.grid_propagate(False)
-        self.xcanvasscrollbar.config(command=self.tool_canvas.xview)
-        self.xcanvasscrollbar.grid(column=0, row=1, sticky='ew')
-        self.ycanvascrollbar.config(command=self.tool_canvas.yview)
-        self.ycanvascrollbar.grid(column=1, row=0, sticky='ns')
-
-        self.canvas_frame = tk.Frame(self.tool_canvas, bg='white')
-        self.canvas_frame.grid(column=0, row=0, sticky='nsew')
 
         rowcount = 0
         self.current_toolvar = tk.IntVar()
@@ -58,14 +52,17 @@ class ToolTab(tk.Frame):
         self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
         rowcount += 1
 
+        self.scrollable_frame.grid(column=0, columnspan=6, row=rowcount, sticky='nsew')
+        yscrollbar_canvas.grid(column=6, row=rowcount, sticky='ns')
+        rowcount += 1
+
         canvas_rowcount = 0
-        self.tool_canvas.grid(column=0, row=rowcount)
         self.tool_list_lbl = tk.Label(self.canvas_frame, text='Tool List', justify='center')
-        self.tool_list_lbl.grid(column=0, row=canvas_rowcount, sticky='ew')
+        self.tool_list_lbl.grid(row=0, column=0, sticky='ew')
         self.toolchange_lbl = tk.Label(self.canvas_frame, text='Tool Number Change', justify='center')
-        self.toolchange_lbl.grid(column=2, columnspan=2, row=canvas_rowcount, sticky='ew')
+        self.toolchange_lbl.grid(row=0, column=2, sticky='ew')
         self.update_tool_chkbxlbl = tk.Label(self.canvas_frame, text='Update Tool', justify='center')
-        self.update_tool_chkbxlbl.grid(column=5, row=canvas_rowcount, sticky='ew')
+        self.update_tool_chkbxlbl.grid(row=0, column=5, sticky='ew')
         canvas_rowcount += 1
         rowcount += 1
 
@@ -258,12 +255,12 @@ class ToolTab(tk.Frame):
             tool_id = 'T' + str(self.current_toolvar.get())
             tool_number = self.update_tool_number_entry.get()
             if tool_id[1:] != tool_number:
-                for widget in self.winfo_children():
+                for widget in self.canvas_frame.winfo_children():
                     if isinstance(widget, tk.Label):
                         if tool_id.lower() in widget.winfo_name() and len(tool_id.lower()) == len(widget.winfo_name()):
                             widget.config(text=f'-> T{tool_number}')
             else:
-                for widget in self.winfo_children():
+                for widget in self.canvas_frame.winfo_children():
                     if isinstance(widget, tk.Label):
                         if tool_id.lower() in widget.winfo_name() and len(tool_id.lower()) == len(widget.winfo_name()):
                             widget.config(text=f'\'\' No Change \'\'')
