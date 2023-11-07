@@ -25,20 +25,22 @@ class ToolTab(tk.Frame):
         tool_commentvar = tk.BooleanVar()
         tool_commentvar.set(False)
 
-        self.tool_canvas = Canvas(self, width=500, height=200, bg='white', scrollregion=(0, 0, 500, 2000),
-                                  xscrollcommand=xcanvasscrollbar.set, yscrollcommand=ycanvascrollbar.set)
-        xcanvasscrollbar = tk.Scrollbar(self.tool_canvas, orient="horizontal")
-        ycanvascrollbar = tk.Scrollbar(self.tool_canvas, orient="vertical")
+        self.tool_canvas = tk.Canvas(self, width=500, height=200, bg='white')
+        self.xcanvasscrollbar = tk.Scrollbar(self.tool_canvas, orient="horizontal")
+        self.ycanvascrollbar = tk.Scrollbar(self.tool_canvas, orient="vertical")
+        self.tool_canvas.config(scrollregion=self.tool_canvas.bbox("all"), xscrollcommand=self.xcanvasscrollbar.set,
+                                yscrollcommand=self.ycanvascrollbar.set)
+
         xscrollbar = tk.Scrollbar(self, orient="horizontal")
         yscrollbar = tk.Scrollbar(self, orient="vertical")
 
 
         self.tool_canvas.propagate(False)
         self.tool_canvas.grid_propagate(False)
-        xcanvasscrollbar.config(command=self.tool_canvas.xview)
-        xcanvasscrollbar.grid(column=0, row=1, sticky='ew')
-        ycanvascrollbar.config(command=self.tool_canvas.yview)
-        ycanvascrollbar.grid(column=1, row=0, sticky='ns')
+        self.xcanvasscrollbar.config(command=self.tool_canvas.xview)
+        self.xcanvasscrollbar.grid(column=0, row=1, sticky='ew')
+        self.ycanvascrollbar.config(command=self.tool_canvas.yview)
+        self.ycanvascrollbar.grid(column=1, row=0, sticky='ns')
 
         self.canvas_frame = tk.Frame(self.tool_canvas, bg='white')
         self.canvas_frame.grid(column=0, row=0, sticky='nsew')
@@ -247,7 +249,6 @@ class ToolTab(tk.Frame):
                 self.update_chkbx.grid(column=5, row=canvas_rowcount, sticky='ew')
                 radiobutton_checkboxes[key] = self.update_chkbx
                 canvas_rowcount += 1
-            ycanvascrollbar.grid(column=6, row=canvas_rowcount, sticky='ns')
             self.blank_lbl = tk.Label(self, text='', justify='center', background=bg_color)
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
