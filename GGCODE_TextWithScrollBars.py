@@ -17,6 +17,9 @@ class TextWithScrollBars(tk.Frame):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.dictbin_tools = {}
+        self.dictbin_tapping = {}
+
         self.grid_propagate(False)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -47,7 +50,9 @@ class TextWithScrollBars(tk.Frame):
         self.text.tag_config('F', foreground='gray')
         self.text.tag_config('Z', foreground='brown')
         self.text.tag_config('R', foreground='gold')
-        alltaglist = {'GCODE': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [], 'R': []}
+        self.text.tag_config('D', foreground='magenta')
+        alltaglist = {'GCODE': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [], 'R': [],
+                      'D': []}
 
         self.runonce = False
 
@@ -91,10 +96,10 @@ class TextWithScrollBars(tk.Frame):
             # print(msgtext)
 
             # This dictionary is sent to tapping_tab in an event generation
-            dictbin_tapping = {}
+            self.dictbin_tapping = {}
 
             # This dictionary is sent to the tool_tab in an event generation
-            dictbin_tools = {}
+            self.dictbin_tools = {}
 
             # mark_tap is a boolean that marks the beginning of a tapping cycle and reset once G80 is found
             mark_tap = False
@@ -115,7 +120,7 @@ class TextWithScrollBars(tk.Frame):
                 if 'G80' in msgtext[line] and 'G40' not in msgtext[line] and 'G17' not in msgtext[line]:
                     if 'Tap' in last_tool or 'TAP' in last_tool or 'tap' in last_tool:
                         tap_append.append((line + 2, msgtext[line]))
-                        dictbin_tapping[last_tool if last_tool else 'blank'] = tap_append
+                        self.dictbin_tapping[last_tool if last_tool else 'blank'] = tap_append
                         tap_append = []
                         mark_tap = False
                         last_tool = ''
@@ -135,15 +140,15 @@ class TextWithScrollBars(tk.Frame):
                             tool = msgtext[line][tstart:]
                         print(f'{tool=}')
                         if '(' in msgtext[line]:
-                            dictbin_tools[tool] = msgtext[line][
+                            self.dictbin_tools[tool] = msgtext[line][
                                                                               msgtext[line].index('('):msgtext[
                                                                                   line].index(')')+1]
                         elif msgtext[line-1] and '(' in msgtext[line - 1][0] and ')' in msgtext[line - 1][-1]:
-                            dictbin_tools[tool] = msgtext[line - 1][msgtext[line-1].index('('):]
+                            self.dictbin_tools[tool] = msgtext[line - 1][msgtext[line-1].index('('):]
                         else:
-                            dictbin_tools[tool] = 'No Tool Comment'
+                            self.dictbin_tools[tool] = 'No Tool Comment'
 
-                        last_tool = msgtext[line][tstart:stop] + '-----' + dictbin_tools[
+                        last_tool = msgtext[line][tstart:stop] + '-----' + self.dictbin_tools[
                             msgtext[line][tstart:stop]]
 
                 # Skipping comment lines
@@ -209,16 +214,21 @@ class TextWithScrollBars(tk.Frame):
                             elif chunk[0] == 'R' and chunk[-1].isnumeric() or chunk[1] == '.':
                                 self.text.tag_add('R', cursor_add, endpoint_add)
                                 alltaglist['R'] += [(cursor_add, endpoint_add)]
+                            elif chunk[0] == 'D' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                self.text.tag_add('D', cursor_add, endpoint_add)
+                                alltaglist['D'] += [(cursor_add, endpoint_add)]
                             cursor = endpoint + 1
                             endpoint = cursor + 1
-                    elif msgtext[cursor] == ' ':
+                    elif cursor < len(msgtext[line]) and msgtext[line][cursor] == ' ':
                         cursor += 1
                         endpoint = cursor + 1
                     else:
                         cursor += 1
                         endpoint = cursor + 1
                     self.runonce = True
-            return dictbin_tools, dictbin_tapping
+            # print(dictbin_tools)
+            print(f'inside prettier it: {self.dictbin_tapping=}')
+            print(f'inside prettier it:{self.dictbin_tools=}')
 
         def update_text(msg):
             """
@@ -233,14 +243,36 @@ class TextWithScrollBars(tk.Frame):
             self.text.config(state="disabled")
             eventlog.generate('disable_show', 'disabled')
 
-            dictbin_tools, dictbin_tapping = prettier_it(msg)[0], prettier_it(msg)[1]
-            eventlog.generate('tool_list_generated', dictbin_tools)
+            prettier_it(msg)
+            eventlog.generate('tool_list_generated', self.dictbin_tools)
 
             # tapping_list_generated is listened to by tapping_tab
-            eventlog.generate('tapping_list_generated', dictbin_tapping)
+            eventlog.generate('tapping_list_generated', self.dictbin_tapping)
 
             # replace_tapping_text is generated by tapping_tab
             eventlog.listen('replace_tapping_text', replace_tapping_text)
+
+        def re_update_text(msg):
+            """
+            This function updates file_textbox with contents of chosen file
+            :param msg: contents of chosen file
+            :return: None
+            """
+            dictbin_tools = {}
+            dictbin_tapping = {}
+            self.text.config(state="normal")
+            self.text.delete("1.0", "end")
+            self.text.insert("1.0", msg)
+            self.text.config(state="disabled")
+
+            prettier_it(msg)
+            eventlog.generate('tool_list_regenerated', self.dictbin_tools)
+
+            # tapping_list_generated is listened to by tapping_tab
+            eventlog.generate('tapping_list_generated', self.dictbin_tapping)
+
+            # replace_tapping_text is generated by tapping_tab
+            eventlog.listen('reg_replace_tapping_text', replace_tapping_text)
 
         def update_text_renumbering_event(payload):
             """
@@ -256,7 +288,7 @@ class TextWithScrollBars(tk.Frame):
 
         def send_all_text(payload):
             """
-            This function sends all text to the eventlog.
+            This function sends all text to the generator 'send_all_text'
             :param payload:
             :return:
             """
@@ -271,94 +303,12 @@ class TextWithScrollBars(tk.Frame):
             :return:
             """
             self.text.config(state='normal')
-            text = self.text.get('1.0', 'end').split('\n')
-            insert_bulk_comment_flag = bool(payload[0])
-            org_tool = None
-            update_flag = False
-
-            # If checkbox 'Add Tool Comments' then add tool comments
-            org_len = len(text)
-            for line in range(len(text)):
-                line = line + len(text) - org_len
-                if len(text[line]) > 0:
-                    if text[line][0] == 'O' and insert_bulk_comment_flag:
-                        tool_comments = '\n (**TOOL LIST**) \n'
-                        for key, value in payload[0].items():
-                            tool_comments += f'({value}\n'
-                        tool_comments += '(** END TOOL LIST **)\n'
-                        tool_comments = tool_comments.split('\n')
-                        for index in range(len(tool_comments)-1, 0, -1):
-                            text.insert(line + 1, tool_comments[index])
-                if 'T' in text[line] and 'M06' in text[line] or 'M6' in text[line]:
-                    update_flag = False
-                    start = text[line].index('T')
-                    stop = start + 1
-                    while stop < len(text[line]) and text[line][stop].isnumeric():
-                        stop += 1
-                    if stop < len(text[line]):
-                        org_tool = text[line][start:stop]
-                    else:
-                        org_tool = text[line][start:]
-                    for tool_id in payload[1].keys():
-                        if org_tool in tool_id:
-                            update_flag = True
-                            text[line] = text[line][:start+1] + payload[1][org_tool]['T']
-                            if payload[1][org_tool]['UPDATEBOOL']:
-                                if len(text[line-1]) > 0 and text[line-1][0] == '(':
-                                    text[line-1] = f'({payload[0][org_tool]}'
-                                elif len(text[line-1]) > 0 and text[line-1][0] != '(':
-                                    text.insert(line, '\n')
-                                    text.insert(line, f'({payload[0][org_tool]}')
-                                else:
-                                    text.insert(line, f'({payload[0][org_tool]}')
-                        else:
-                            continue
-                if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
-                    start = text[line].index('T')
-                    stop = start + 1
-                    while stop < len(text[line]) and text[line][stop].isnumeric():
-                        stop += 1
-                    if stop < len(text[line]):
-                        next_tool = text[line][start:stop]
-                    else:
-                        next_tool = text[line][start:]
-                    for tool_id in payload[1].keys():
-                        if next_tool in tool_id:
-                            text[line] = text[line][:start+1] + payload[1][next_tool]['T']
-                            if payload[1][next_tool]['UPDATEBOOL']:
-                                if len(text[line-1]) > 0 and text[line-1][0] == '(':
-                                    text[line-1] = f'({payload[0][next_tool]}'
-                                elif len(text[line-1]) > 0 and text[line-1][0] != '(':
-                                    text.insert(line, '\n')
-                                    text.insert(line, f'({payload[0][next_tool]}')
-                                else:
-                                    text.insert(line, f'({payload[0][next_tool]}')
-                        else:
-                            continue
-                if update_flag:
-                    if 'H' in text[line] and '(' not in text[line]:
-                        hindex = text[line].index('H')
-                        hend = hindex + 1
-                        while hend < len(text[line]) and text[line][hend].isnumeric():
-                            hend += 1
-                        if hend >= len(text[line]):
-                            hend -= 1
-                        if payload[1][org_tool]['T'] != org_tool[1:]:
-                            text[line] = f'{text[line][:hindex+1]}{payload[1][org_tool]['T']}{text[line][hend:]}'
-                    if 'D' in text[line] and '(' not in text[line]:
-                        dindex = text[line].index('D')
-                        dend = dindex + 1
-                        while text[line][dend].isnumeric():
-                            dend += 1
-                        if payload[1][org_tool]['T'] != org_tool[1:]:
-                            text[line] = f'{text[line][:dindex+1]}{payload[1][org_tool]["T"]}{text[line][dend:]}'
-
-            updated_text = '\n'.join(text)
             self.text.delete('1.0', 'end')
-            self.text.insert('1.0', updated_text)
-            prettier_it(updated_text)
+            self.text.insert('1.0', payload)
+            prettier_it(payload)
             self.text.config(state='disabled')
 
+        eventlog.listen('re_update_text', re_update_text)
         eventlog.listen('get_text', send_all_text)
         eventlog.listen('update_text', update_text)
         eventlog.listen('update_text_renumbering_event', update_text_renumbering_event)

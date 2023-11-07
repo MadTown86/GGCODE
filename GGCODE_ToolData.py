@@ -14,21 +14,28 @@ class ToolTab(tk.Frame):
         tool_list = {}
         tool_type_choices = ['DRILL', 'RTAP', 'LTAP', 'SHELL', 'ENDMILL', 'BALL', 'CHAMFER', 'SPOT', 'CENTER', 'CSINK', 'BULL',
                              'DOVE', 'RADIUS', 'TAPER', 'BORING', 'REAMER', 'ENGRAVE', 'PROBE']
+        self.text = ''
+
+        # Stores radiobuttons in a dictionary for easy access
         radiobuttons = {}
+
+        # Stores radiobutton checkboxes for 'Update Tool' in a dictionary for easy access
         radiobutton_checkboxes = {}
 
         original_comments = {}
 
-        header_commentvar = tk.BooleanVar()
-        header_commentvar.set(False)
-
+        # BooleanVar for 'Update Tool Comments' checkbox
         tool_commentvar = tk.BooleanVar()
         tool_commentvar.set(False)
 
+        # Textbox Scrollbars
         xscrollbar = Scrollbar(self, orient='horizontal')
         yscrollbar = Scrollbar(self, orient='vertical')
+
+        # Canvas Scrollbar
         yscrollbar_canvas = Scrollbar(self, orient='vertical')
 
+        # Canvas Creation and Child Frame Creation
         self.scrollable_frame = Canvas(self, bg='white', width=600, height=200, scrollregion=(0, 0, 1000, 1000),
                                        yscrollcommand=yscrollbar_canvas.set)
         self.canvas_frame = tk.Frame(self.scrollable_frame, bg='white', width=1000, height=1000)
@@ -38,10 +45,10 @@ class ToolTab(tk.Frame):
         self.scrollable_frame.propagate(False)
         yscrollbar_canvas.config(command=self.scrollable_frame.yview)
 
-
-        rowcount = 0
-        self.current_toolvar = tk.IntVar()
-
+        rowcount = 0 # Row counter for grid layout, main self.frame GGCODE_ToolData
+        # FIRST SECTION - Add Tool Section - GUI Elements
+        header_commentvar = tk.BooleanVar() # Booleon selection for checkbox
+        header_commentvar.set(False)
         self.add_tcommentslbl = tk.Label(self, text='Add Tool Section - Top Of Page', justify='center')
         self.add_tcommentslbl.grid(column=0, row=rowcount, sticky='ew')
         rowcount += 1
@@ -52,11 +59,12 @@ class ToolTab(tk.Frame):
         self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
         rowcount += 1
 
+        # SECOND SECTION - Canvas Tool List, Dynamically Generated - Core GUI Elements
+        self.current_toolvar = tk.IntVar()  # Currently Selected Tool RadioButton
         self.scrollable_frame.grid(column=0, columnspan=6, row=rowcount, sticky='nsew')
         yscrollbar_canvas.grid(column=6, row=rowcount, sticky='ns')
         rowcount += 1
-
-        canvas_rowcount = 0
+        canvas_rowcount = 0 # Row counter for grid layout, canvas_frame
         self.tool_list_lbl = tk.Label(self.canvas_frame, text='Tool List', justify='center')
         self.tool_list_lbl.grid(row=0, column=0, sticky='ew')
         self.toolchange_lbl = tk.Label(self.canvas_frame, text='Tool Number Change', justify='center')
@@ -70,8 +78,17 @@ class ToolTab(tk.Frame):
 
 
         def add_update_options():
-            nonlocal rowcount
-            columncount = 0
+            """
+            THIRD SECTION - Add Tool Data Update Elements
+            Having this section created upon initialization removes the possibility of user trying to enter data
+            before the tool list is generated.
+
+            :return: None
+            """
+            nonlocal rowcount # Carry over rowcount from previous section
+            columncount = 0  # Column counter for grid layout, main self.frame GGCODE_ToolData
+
+            # Update Tool Data Section - GUI Label Elements
             self.update_tool_lbl = tk.Label(self, text='Update Tool Data', justify='center', padx=5)
             self.update_tool_lbl.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
@@ -107,6 +124,7 @@ class ToolTab(tk.Frame):
             self.update_tool_lbl.grid(columnspan=columncount)
             rowcount += 1
 
+            # Update Tool Data Section - GUI Entry Elements
             self.update_tool_number_entry = tk.Entry(self, width=3, bg='white', justify='left')
             self.update_tool_number_entry.grid(column=0, row=rowcount, sticky='ew')
             self.update_tool_diameter_entry = tk.Entry(self, width=4, bg='white', justify='left')
@@ -130,6 +148,7 @@ class ToolTab(tk.Frame):
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
 
+            # Store Tool Update Button - Bound to udpate_tool_event
             self.update_tool_btn = tk.Button(self, text='Store Tool Update')
             self.update_tool_btn.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
@@ -153,6 +172,7 @@ class ToolTab(tk.Frame):
             self.tooltext_box.config(state='disabled')
             rowcount += 2
 
+            # Store Tool Update Button - Bound to udpate_tool_event
             self.update_tool_btn.bind('<Button-1>', udpate_tool_event)
 
             self.blank_lbl = tk.Label(self, text='', justify='center', background=bg_color)
@@ -166,11 +186,12 @@ class ToolTab(tk.Frame):
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
 
+            # Send Changes To File Button
             self.send_changes_btn = tk.Button(self, text='Send Changes To File')
             self.send_changes_btn.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
 
-
+            # Send Changes To File Button - Bound to send_changes_to_file
             self.send_changes_btn.bind('<Button-1>', send_changes_to_file)
 
         def update_radio_lbl(payload):
@@ -185,21 +206,46 @@ class ToolTab(tk.Frame):
 
             # Loops through the generated radiobuttons by sequence number
             for key, value in radiobuttons.items():
-                if 'T' + key in payload[1].keys():
-                    value.config(text=f'T{payload[1]['T' + key]['T']} :: {payload[0]["T" + key][:10]}')
-                    value.config(value=payload[1]['T' + key]['T'])
+                if 'T' + key in tool_list.keys():
+                    value.config(text=f'T{tool_list['T' + key]['T']} :: {tool_comments_dict["T" + key][:10]}')
+                    value.config(value=tool_list['T' + key]['T'])
                 else:
                     # TODO Create error handling and raise condition for 'No Tool Found' error
                     pass
+        def receive_current_text(payload):
+            """
+            This method will receive the current text from the text box. It is called when the user clicks the
+            'Send Changes To File' button.
 
-
+            :param payload:
+            :return:
+            """
+            self.text = payload
+            print('receive_current_text called - from GGCOD_ToolData.py')
+            print(f'{payload=}')
+        def get_text():
+            """
+            This method will get the text from the text box. It is called when the user clicks the 'Send Changes To File'
+            :return:
+            """
+            print('get_text called - from GGCOD_ToolData.py')
+            eventlog.generate('get_text', ('1.0', 'end'))
 
         def send_changes_to_file(event):
+            """
+            This method will send the changes to the file. It is called when the user clicks the 'Send Changes To File'
+            button.
+
+            :param event:
+            :return:
+            """
             print('send_changes_to_file called')
+            get_text()
             # Modify tool_list dictionary to concatenate the different string variables into one string
             tool_comment_dict = {}
             add_tool_list = header_commentvar.get()
             print(f'{add_tool_list=}')
+            updated_text = ''
 
             if not tool_list:
                 self.tooltext_box.config(state='normal')
@@ -218,12 +264,94 @@ class ToolTab(tk.Frame):
                 else:
                     tool_list_text = None
 
-                eventlog.generate('send_changes_to_file', (tool_comment_dict, tool_list))
-                # eventlog.generate('update_radio_lbl', (tool_comment_dict, tool_list))
+            text = self.text.split('\n')
+            insert_bulk_comment_flag = bool(header_commentvar.get())
+            org_tool = None
+            update_flag = False
 
-                print(f'{tool_list_text=}')
-                print(f'{tool_comment_dict=}')
-                print(f'{tool_list=}')
+            # If checkbox 'Add Tool Comments' then add tool comments
+            org_len = len(text)
+            for line in range(len(text)):
+                line = line + len(text) - org_len
+                if len(text[line]) > 0:
+                    if text[line][0] == 'O' and insert_bulk_comment_flag:
+                        tool_comments = '\n (**TOOL LIST**) \n'
+                        for key, value in tool_comment_dict.items():
+                            tool_comments += f'({value}\n'
+                        tool_comments += '(** END TOOL LIST **)\n'
+                        tool_comments = tool_comments.split('\n')
+                        for index in range(len(tool_comments) - 1, 0, -1):
+                            text.insert(line + 1, tool_comments[index])
+                if 'T' in text[line] and 'M06' in text[line] or 'M6' in text[line]:
+                    update_flag = False
+                    start = text[line].index('T')
+                    stop = start + 1
+                    while stop < len(text[line]) and text[line][stop].isnumeric():
+                        stop += 1
+                    if stop < len(text[line]):
+                        org_tool = text[line][start:stop]
+                    else:
+                        org_tool = text[line][start:]
+                    for tool_id in tool_list.keys():
+                        if org_tool in tool_id:
+                            update_flag = True
+                            text[line] = text[line][:start + 1] + tool_list[org_tool]['T']
+                            if tool_list[org_tool]['UPDATEBOOL']:
+                                if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
+                                    text[line - 1] = f'({tool_comment_dict[org_tool]}'
+                                elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
+                                    text.insert(line, '\n')
+                                    text.insert(line, f'({tool_comment_dict[org_tool]}')
+                                else:
+                                    text.insert(line, f'({tool_comment_dict[org_tool]}')
+                        else:
+                            continue
+                if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
+                    start = text[line].index('T')
+                    stop = start + 1
+                    while stop < len(text[line]) and text[line][stop].isnumeric():
+                        stop += 1
+                    if stop < len(text[line]):
+                        next_tool = text[line][start:stop]
+                    else:
+                        next_tool = text[line][start:]
+                    for tool_id in tool_list.keys():
+                        if next_tool in tool_id:
+                            text[line] = text[line][:start + 1] + tool_list[next_tool]['T']
+                            if tool_list[next_tool]['UPDATEBOOL']:
+                                if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
+                                    text[line - 1] = f'({tool_comment_dict[next_tool]}'
+                                elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
+                                    text.insert(line, '\n')
+                                    text.insert(line, f'({tool_comment_dict[next_tool]}')
+                                else:
+                                    text.insert(line, f'({tool_comment_dict[next_tool]}')
+                        else:
+                            continue
+                if update_flag:
+                    if 'H' in text[line] and '(' not in text[line]:
+                        hindex = text[line].index('H')
+                        hend = hindex + 1
+                        while hend < len(text[line]) and text[line][hend].isnumeric():
+                            hend += 1
+                        if hend >= len(text[line]):
+                            hend -= 1
+                        if tool_list[org_tool]['T'] != org_tool[1:]:
+                            text[line] = f'{text[line][:hindex + 1]}{tool_list[org_tool]['T']}{text[line][hend:]}'
+                    if 'D' in text[line] and '(' not in text[line]:
+                        dindex = text[line].index('D')
+                        dend = dindex + 1
+                        if dend == len(text[line]):
+                            dend -= 1
+                        while dend < len(text[line]) and text[line][dend].isnumeric():
+                            dend += 1
+                        if tool_list[org_tool]['T'] != org_tool[1:]:
+                            text[line] = f'{text[line][:dindex + 1]}{tool_list[org_tool]["T"]}{text[line][dend:]}'
+
+            updated_text = '\n'.join(text)
+            eventlog.generate('re_update_text', updated_text)
+
+
 
 
         def add_tool_entries(payload):
@@ -303,3 +431,4 @@ class ToolTab(tk.Frame):
 
         # eventlog.listen('update_radio_lbl', update_radio_lbl)
         eventlog.listen('tool_list_generated', add_tool_entries)
+        eventlog.listen('send_all_text', receive_current_text)

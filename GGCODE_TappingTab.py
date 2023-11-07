@@ -1,4 +1,6 @@
 import tkinter as tk
+from tkinter import Scrollbar
+from tkinter import Canvas
 
 import GGCODE_EventHandler
 
@@ -20,27 +22,50 @@ class TappingTab(tk.Frame):
         true_falsevar = tk.StringVar()
         depthvar = tk.StringVar()
         toolvar = tk.StringVar()
-        radiobuttons = {}
+        self.generated_radiobuttons = {}
+        self.final_tap_elements = {}
+        self.initialize = False
+        self.generated_lbls = {}
+        self.canvas_count = 0
+        count = 0
+
+        self.toplabel = tk.Label(self, text='Choose Tap', justify='center')
+        self.toplabel.grid(column=0, columnspan=2, row=count, sticky='ew')
+        count += 1
+
+        # Canvas Scrollbar
+        yscrollbar_canvas = Scrollbar(self, orient='vertical')
+
+        # Canvas Creation and Child Frame Creation
+        self.scrollable_frame = Canvas(self, bg='white', width=600, height=200, scrollregion=(0, 0, 1000, 1000),
+                                       yscrollcommand=yscrollbar_canvas.set)
+        self.canvas_frame = tk.Frame(self.scrollable_frame, bg='white', width=1000, height=1000)
+        self.scrollable_frame.create_window((0, 0), window=self.canvas_frame, anchor='nw')
+        self.canvas_frame.propagate(False)
+        self.scrollable_frame.grid_propagate(False)
+        self.scrollable_frame.propagate(False)
+        yscrollbar_canvas.config(command=self.scrollable_frame.yview)
+        self.scrollable_frame.grid(column=0, row=count, sticky='ew')
+        yscrollbar_canvas.grid(column=1, row=count, sticky='ns')
 
         # Format {'T#': ['True/False', 'Depth Increment Chosen']}
         rigid_tappingdict = {}
 
         # Format {'T#-----Tool Comment': [(line number, 'line of tapping code'), (line number, 'line of tapping code')]}
-        tapping_lines = {}
+        self.tapping_lines = {}
 
         # Format {'T#': [('start line', 'stop line'), 'text string with lines of tapping code']}
         final_tapping_output = {}
 
         eventlog = GGCODE_EventHandler.EventHandler()
 
-        # Count is maintained for automatic placement of elements in the frame's grid
-        count = 0
-
         # Format {'T#': ['Tool Comment', {'Z': final z depth, 'R': retract, 'J': feedrate, 'F': feedrate},
         # (line number, drill point)]}
-        final_tap_elements = {}
+        self.final_tap_elements = {}
 
         self.grid(column=0, row=0, sticky='nsew')
+
+
 
         def add_options():
             """
@@ -156,7 +181,8 @@ class TappingTab(tk.Frame):
             else:
                 self.updatetextlbl.config(text='*****SELECT OPTIONS FIRST*****')
 
-        def add_tapping_elements(payload):
+        def generate_tapping_elements(payload):
+            print('generate_tapping_elements')
             """
             This method parses through the tool data accumulated during the initial file parsing and organizes key
             elements into final_tapping_output. The final_tapping_output is a dictionary with the following format:
@@ -172,10 +198,8 @@ class TappingTab(tk.Frame):
             :param payload: {dictbin_tapping} sent from GGCODE_TextWithScrollBars.py
             :return:
             """
-
-            nonlocal final_tap_elements
-            nonlocal tapping_lines
-            tapping_lines = payload
+            self.final_tap_elements = {}
+            self.tapping_lines = payload
 
             # tap size database: Format {'tap size string': 'converted to pitch in inches to 4 decimal places'}
             tap_lookup = {
@@ -313,35 +337,43 @@ class TappingTab(tk.Frame):
                     elif 'X' in code_line or 'Y' in code_line:
                         drillpoints.append(code_line)
                     elif 'G80' in code_line:
-                        final_tap_elements[T] = [comment, drillmacro, drillpoints]
-                    # cursor += 1
-                    # endpoint = cursor + 1
+                        self.final_tap_elements[T] = [comment, drillmacro, drillpoints]
+            print(f'{self.final_tap_elements=}')
+            if not self.initialize:
+                add_tapping_elements()
+            else:
+                update_tapping_elements()
 
-            nonlocal count
-            self.toplabel = tk.Label(self, text='Choose Tap', justify='center')
-            self.toplabel.grid(column=0, columnspan=2, row=count, sticky='ew')
-            count += 1
 
+        def add_tapping_elements():
+            print('add_tapping_elements')
             # This section is generating a radiobutton by tap found and adding it to the tapping tab
-            for T in final_tap_elements.keys():
+            for T in self.final_tap_elements.keys():
                 radiolabel = str(T) + 'label'
-                labeltext = str(T) + '-----' + final_tap_elements[T][0]
-                self.radiolabel = tk.Label(self, text=labeltext, justify='left')
-                self.radiolabel.grid(column=1, row=count, sticky='w')
+                labeltext = str(T) + '-----' + self.final_tap_elements[T][0]
+                self.radiolabel = tk.Label(self.canvas_frame, text=labeltext, justify='left')
+                self.radiolabel.grid(column=1, row=self.canvas_count, sticky='w')
                 keyradio = str(T) + '_radio'
-                self.keyradio = tk.Radiobutton(self, text=str(T), value=T, variable=toolvar)
-                radiobuttons[keyradio] = self.keyradio
-                self.keyradio.grid(column=0, row=count, sticky='w')
-                count += 1
-            print(f'{final_tap_elements=}')
-            print(f'{tapping_lines=}')
+                self.keyradio = tk.Radiobutton(self.canvas_frame, text=str(T), value=T, variable=toolvar)
+                self.keyradio.grid(column=0, row=self.canvas_count, sticky='w')
+
+                self.generated_radiobuttons[keyradio] = self.keyradio
+                self.generated_lbls[radiolabel] = self.radiolabel
+                self.canvas_count += 1
 
             # After all tool data is added to the tapping tab, the options are added
-            add_options()
-
-        def update_tool_radiobuttons(payload):
-            for old_tool, new_tool in payload.items():
+            if not self.initialize:
+                add_options()
+            else:
                 pass
+            self.initialize = True
+        def update_tapping_elements():
+            print('update_tapping_elements')
+            print(f'{self.final_tap_elements=}')
+            for item in self.canvas_frame.grid_slaves():
+                item.destroy()
+            self.canvas_count = 0
+            add_tapping_elements()
 
         def adjust_tapping_code(event):
             """
@@ -357,7 +389,6 @@ class TappingTab(tk.Frame):
             :param event: <Button-1>
             :return: None
             """
-            print(f'{rigid_tappingdict=}')
 
             #TODO Future Fix - redundancy, just send dictbin_tapping with all required information in desired format
 
@@ -383,11 +414,9 @@ class TappingTab(tk.Frame):
                             linesToAdjust = values
                         else:
                             continue
-                    print(f'{linesToAdjust=}')
 
                     # The multiplier is the number of passes to make to reach the final depth
                     multiplier = rigid_tappingdict[tool][1]
-                    print(f'{multiplier=}')
                     if multiplier == '.33':
                         passes = 3
                     elif multiplier == '.25':
@@ -480,6 +509,8 @@ class TappingTab(tk.Frame):
         eventlog.listen('show_tappingtext_event', show_tappingtext_event)
 
         # This event is generated by GGCODE_TextWithScrollBars.py
-        eventlog.listen('tapping_list_generated', add_tapping_elements)
+        eventlog.listen('tapping_list_generated', generate_tapping_elements)
+
+        eventlog.listen('update_tapping_elements', update_tapping_elements)
 
 

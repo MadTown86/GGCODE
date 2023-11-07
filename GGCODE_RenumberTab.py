@@ -64,6 +64,7 @@ class RenumberTab(tk.Frame):
 
         self.sendtofile_btn.bind("<Button-1>", get_text)
         self.eventlog.listen('send_all_text', receive_all_text)
+
     def renumber_selection(self):
         """
         This method receives the user's choice and calls the appropriate method for changing line (N) numbers.
