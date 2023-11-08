@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog as fd
 
 import GGCODE.ggcode_textwithscrollbars as ggcode_textwithscrollbars
 import GGCODE.ggcode_filetab as ggcode_filetab
@@ -49,8 +50,22 @@ class MRP:
         self.tabs.grid(column=0, row=0, sticky='nsew')
 
         self.eventlogger.listen('file_selected', self.store_file)
+
+        def confirm(event):
+            text = self.textpane.text.get('1.0', 'end')
+            file = fd.asksaveasfile()
+            file.write(text)
+            file.close()
+
+        self.confirm_btn.bind("<Button-1>", confirm)
+
     def start(self):
         self.root.mainloop()
+
+
+
+
+
 
 
     @staticmethod

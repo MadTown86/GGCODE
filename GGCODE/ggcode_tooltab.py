@@ -326,7 +326,7 @@ class ToolTab(tk.Frame):
                         if hend >= len(text[line]):
                             hend -= 1
                         if tool_list[org_tool]['T'] != org_tool[1:]:
-                            text[line] = f'{text[line][:hindex + 1]}{tool_list[org_tool]['T']}{text[line][hend:]}'
+                            text[line] = f'{text[line][:hindex + 1]}{tool_list[org_tool]["T"]}{text[line][hend:]}'
                     if 'D' in text[line] and '(' not in text[line]:
                         dindex = text[line].index('D')
                         dend = dindex + 1
