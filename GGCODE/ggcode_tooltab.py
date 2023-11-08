@@ -3,13 +3,14 @@ from tkinter.ttk import Radiobutton
 from tkinter.ttk import Scrollbar
 from tkinter.ttk import Combobox
 from tkinter import Canvas
-import GGCODE_EventHandler
+import GGCODE.ggcode_eventhandler as ggcode_eventhandler
+
 
 class ToolTab(tk.Frame):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs),
+        super().__init__(*args, **kwargs)
         self.grid(column=0, row=0, sticky='nsew')
-        eventlog = GGCODE_EventHandler.EventHandler()
+        eventlog = ggcode_eventhandler.EventHandler()
         bg_color = '#D98E04'
         tool_list = {}
         tool_type_choices = ['DRILL', 'RTAP', 'LTAP', 'SHELL', 'ENDMILL', 'BALL', 'CHAMFER', 'SPOT', 'CENTER', 'CSINK', 'BULL',
@@ -75,9 +76,6 @@ class ToolTab(tk.Frame):
         self.update_tool_chkbxlbl.grid(row=0, column=5, sticky='ew')
         canvas_rowcount += 1
         rowcount += 1
-
-
-
 
         def add_update_options():
             """
@@ -207,6 +205,7 @@ class ToolTab(tk.Frame):
             self.text = payload
             print('receive_current_text called - from GGCOD_ToolData.py')
             print(f'{payload=}')
+
         def get_text():
             """
             This method will get the text from the text box. It is called when the user clicks the 'Send Changes To File'
@@ -263,7 +262,6 @@ class ToolTab(tk.Frame):
                             tool_list_text += ')'
                         tool_comment_dict[key] = tool_list_text
                 print(f'{tool_comment_dict=}')
-
 
             text = self.text.split('\n')
             insert_bulk_comment_flag = bool(header_commentvar.get())
@@ -342,9 +340,6 @@ class ToolTab(tk.Frame):
             updated_text = '\n'.join(text)
             eventlog.generate('re_update_text', updated_text)
 
-
-
-
         def add_tool_entries(payload):
             nonlocal rowcount
             nonlocal canvas_rowcount
@@ -373,7 +368,6 @@ class ToolTab(tk.Frame):
                 self.initialize = True
             else:
                 pass
-
 
         def update_tool_entries(payload):
             """
@@ -439,11 +433,6 @@ class ToolTab(tk.Frame):
             for key, value in tool_list.items():
                 self.tooltext_box.insert('end', f'{key} {value}\n')
             self.tooltext_box.config(state='disabled')
-
-
-
-
-
 
         # eventlog.listen('update_radio_lbl', update_radio_lbl)
         eventlog.listen('tool_list_regenerated', update_tool_entries)

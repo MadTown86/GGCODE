@@ -1,13 +1,13 @@
 import tkinter as tk
 from tkinter import filedialog as fd
 from tkinter import ttk
-import GGCODE_EventHandler
+import GGCODE.ggcode_eventhandler as ggcode_eventhandler
 import signal
 class FileTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs),
         self.rawfile = None
-        eventlog = GGCODE_EventHandler.EventHandler()
+        eventlog = ggcode_eventhandler.EventHandler()
 
         browse_lbl = tk.Label(self, text='Please Choose An *.NC File Or Equivalent', justify='left')
         browse_btn = tk.Button(self, text='Browse', justify='left', pady=10)

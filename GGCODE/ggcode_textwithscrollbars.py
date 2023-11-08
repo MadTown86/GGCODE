@@ -1,5 +1,5 @@
 import tkinter as tk
-import GGCODE_EventHandler
+import GGCODE.ggcode_eventhandler as ggcode_eventhandler
 
 
 class TextWithScrollBars(tk.Frame):
@@ -23,7 +23,7 @@ class TextWithScrollBars(tk.Frame):
         self.grid_propagate(False)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        eventlog = GGCODE_EventHandler.EventHandler()
+        eventlog = ggcode_eventhandler.EventHandler()
 
         xscrollbar = tk.Scrollbar(self, orient="horizontal")
         yscrollbar = tk.Scrollbar(self, orient="vertical")
@@ -66,7 +66,8 @@ class TextWithScrollBars(tk.Frame):
             tap_text = self.text.get('1.0', 'end').split('\n')
             print(f'{tap_text=}')
             tapping_tool_mark = False
-            for line in range(len(tap_text)):
+            line = 0
+            while line < len(tap_text):
                 if 'T' in tap_text[line] and 'M06' in tap_text[line] or 'T' in tap_text[line] and 'M6' in tap_text[line]:
                     start = tap_text[line].index('T')
                     stop = start + 1
@@ -88,6 +89,7 @@ class TextWithScrollBars(tk.Frame):
                             tap_text.insert(internal_line, item)
                             internal_line += 1
                         tapping_tool_mark = False
+                line += 1
 
 
             self.text.delete('1.0', 'end')

@@ -2,14 +2,14 @@
 Renumber Tab Class
 """
 import tkinter as tk
-import GGCODE_EventHandler
+import GGCODE.ggcode_eventhandler as ggcode_eventhandler
 
 
 class RenumberTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.eventlog = GGCODE_EventHandler.EventHandler()
+        self.eventlog = ggcode_eventhandler.EventHandler()
 
         self.v = tk.StringVar(self)
         self.ren_lbl_1 = tk.Label(self, text="Please Choose One Renumber Option", justify='center')
