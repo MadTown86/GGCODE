@@ -63,14 +63,35 @@ class TextWithScrollBars(tk.Frame):
             :return:
             """
             self.text.config(state='normal')
-            for key in payload.keys():
-                start = str(int(self.text.search(key, '1.0', 'end').split('.')[0]) + 3) + '.0'
-                stop = str(int(self.text.search('G80', start, 'end').split('.')[0])) + '.0'
-                self.text.delete(start, stop)
+            tap_text = self.text.get('1.0', 'end').split('\n')
+            print(f'{tap_text=}')
+            tapping_tool_mark = False
+            for line in range(len(tap_text)):
+                if 'T' in tap_text[line] and 'M06' in tap_text[line] or 'T' in tap_text[line] and 'M6' in tap_text[line]:
+                    start = tap_text[line].index('T')
+                    stop = start + 1
+                    while stop < len(tap_text[line]) and tap_text[line][stop].isnumeric():
+                        stop += 1
+                    if stop < len(tap_text[line]):
+                        tool = tap_text[line][start:stop]
+                    else:
+                        tool = tap_text[line][start:]
+                    if tool in payload.keys():
+                        tapping_tool_mark = True
+                        text_to_write = payload[tool][1]
+                if tapping_tool_mark:
+                    if 'G84' in tap_text[line] and 'G80' not in tap_text[line]:
+                        while 'G80' not in tap_text[line]:
+                            tap_text.pop(line)
+                        internal_line = line
+                        for item in text_to_write.split('\n'):
+                            tap_text.insert(internal_line, item)
+                            internal_line += 1
+                        tapping_tool_mark = False
 
-            for key, value in payload.items():
-                start = str(int(self.text.search(key, '1.0', 'end').split('.')[0]) + 3) + '.0'
-                self.text.insert(start, value[1])
+
+            self.text.delete('1.0', 'end')
+            self.text.insert('1.0', '\n'.join(tap_text))
             prettier_it(self.text.get('1.0', 'end'))
             self.text.config(state='disabled')
 
@@ -258,8 +279,7 @@ class TextWithScrollBars(tk.Frame):
             :param msg: contents of chosen file
             :return: None
             """
-            dictbin_tools = {}
-            dictbin_tapping = {}
+
             self.text.config(state="normal")
             self.text.delete("1.0", "end")
             self.text.insert("1.0", msg)

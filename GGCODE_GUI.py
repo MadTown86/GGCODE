@@ -44,6 +44,7 @@ class MRP:
         self.tabs.grid(column=0, row=0, sticky='nsew')
 
         self.eventlogger.listen('file_selected', self.store_file)
+    def start(self):
         self.root.mainloop()
 
 
@@ -53,11 +54,3 @@ class MRP:
     @staticmethod
     def store_file(payload):
         file = payload
-
-
-
-
-
-
-if __name__ == "__main__":
-    M = MRP()

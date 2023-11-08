@@ -396,7 +396,7 @@ class TappingTab(tk.Frame):
             for tool, values in rigid_tappingdict.items():
 
                 #TODO - not ideal looping construct
-                for key, value in tapping_lines.items():
+                for key, value in self.tapping_lines.items():
                     if tool in key:
                         # line number of the first line of tapping code original file
                         start = value[0][0]
@@ -409,7 +409,7 @@ class TappingTab(tk.Frame):
                 if values[0] == 'True':
 
                     # This loop selects the lines of tapping code to be adjusted from tapping_lines
-                    for tool_comment, values in tapping_lines.items():
+                    for tool_comment, values in self.tapping_lines.items():
                         if tool in tool_comment:
                             linesToAdjust = values
                         else:
@@ -427,7 +427,7 @@ class TappingTab(tk.Frame):
                         pass
 
                     # The final depth is the depth of the hole to be tapped
-                    final_depth = float(final_tap_elements[tool][1]['Z'])
+                    final_depth = float(self.final_tap_elements[tool][1]['Z'])
 
                     # Loops through each line of tapping code recorded for the current tool
                     # element format (line number, 'line of tapping code')
@@ -441,11 +441,11 @@ class TappingTab(tk.Frame):
 
                             # Sometimes the first line of tapping code does not contain a drill point location
                             if 'X' not in second_element and 'Y' not in second_element:
-                                initial_line = f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"][0]} F{final_tap_elements[tool][1]["F"]}'
+                                initial_line = f'G84 Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"][0]} F{self.final_tap_elements[tool][1]["F"]}'
                                 tapping_adjustments += initial_line + '\n'
                                 current_zdepth += float(f'{final_depth / passes:.4f}')
                                 while current_zdepth >= final_depth:
-                                    tapping_adjustments += f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"][0]} F{final_tap_elements[tool][1]["F"]}\n'
+                                    tapping_adjustments += f'G84 Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"][0]} F{self.final_tap_elements[tool][1]["F"]}\n'
                                     current_zdepth += float(f'{final_depth / passes:.4f}')
                                 continue
                             # If first line of tapping macro contains a drill point location
@@ -458,14 +458,14 @@ class TappingTab(tk.Frame):
                                 while second_element[cursor] != ' ':
                                     cursor += 1
                                 first_half = second_element[:cursor]
-                                second_half = f'Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]} F{final_tap_elements[tool][1]["F"]}'
+                                second_half = f'Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"]} F{self.final_tap_elements[tool][1]["F"]}'
                                 initial_line = first_half + second_half
                             elif 'X' not in second_element and 'Y' in second_element:
                                 cursor = second_element.index('Y')
                                 while second_element[cursor] != ' ':
                                     cursor += 1
                                 first_half = second_element[:cursor]
-                                second_half = f'Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]} F{final_tap_elements[tool][1]["F"]}'
+                                second_half = f'Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"]} F{self.final_tap_elements[tool][1]["F"]}'
                                 initial_line = first_half + second_half
                             elif 'X' in second_element and 'Y' in second_element:
                                 if second_element.index('Y') > second_element.index('X'):
@@ -475,19 +475,19 @@ class TappingTab(tk.Frame):
                                 while second_element[cursor] != ' ':
                                     cursor += 1
                                 first_half = second_element[:cursor]
-                                second_half = f'Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]} F{final_tap_elements[tool][1]["F"]}'
+                                second_half = f'Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"]} F{self.final_tap_elements[tool][1]["F"]}'
                                 initial_line = first_half + second_half
                             tapping_adjustments += initial_line + '\n'
                             current_zdepth += float(f'{final_depth / passes:0.4f}')
                             while current_zdepth >= final_depth:
-                                tapping_adjustments += f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]} F{final_tap_elements[tool][1]["F"]}\n'
+                                tapping_adjustments += f'G84 Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"]} F{self.final_tap_elements[tool][1]["F"]}\n'
                                 current_zdepth += float(f'{final_depth / passes:0.4f}')
                         # If the line of tapping code is not the first line of tapping macro
                         elif 'G80' not in second_element:
-                            tapping_adjustments += f'G84 {second_element} Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]}\n'
+                            tapping_adjustments += f'G84 {second_element} Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"]}\n'
                             current_zdepth += float(f'{final_depth / passes:0.4f}')
                             while current_zdepth >= final_depth:
-                                tapping_adjustments += f'G84 Z{str(current_zdepth)} R{final_tap_elements[tool][1]["R"]} J{final_tap_elements[tool][1]["J"]}\n'
+                                tapping_adjustments += f'G84 Z{str(current_zdepth)} R{self.final_tap_elements[tool][1]["R"]} J{self.final_tap_elements[tool][1]["J"]}\n'
                                 current_zdepth += float(f'{final_depth / passes:0.4f}')
                         # If the line of tapping code is the last line of tapping macro
                         elif 'G80' in second_element:
