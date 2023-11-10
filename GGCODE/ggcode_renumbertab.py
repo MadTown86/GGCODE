@@ -165,13 +165,8 @@ class RenumberTab(tk.Frame):
                         endpoint += 1
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line[endpoint:] + '\n'
                     current_number += increment
-            elif '(' in current_line and ')' in current_line:
-                if 'M06' not in current_line and 'M6' not in current_line:
-                    return_text += current_line + '\n'
-                    continue
-                else:
-                    return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
-                    current_number += increment
+            elif '(' in current_line and ')' in current_line and current_line[0] == '(':
+                return_text += current_line + '\n'
             else:
                 if current_number <= int(maxn):
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
@@ -225,8 +220,10 @@ class RenumberTab(tk.Frame):
                         current_number += increment
                 else:
                     return_text += current_line[endpoint:] + '\n'
-            elif 'T' in current_line and 'M6' in current_line or 'M06' in current_line:
-                if current_number <= int(maxn):
+            elif 'T' in current_line and 'M6' in current_line or 'T' in current_line and 'M06' in current_line:
+                if current_line[0] == '(':
+                    return_text += current_line + '\n'
+                elif current_number <= int(maxn):
                     return_text += 'N' + leading_zeroes + str(current_number) + ' ' + current_line + '\n'
                     current_number += increment
                 else:

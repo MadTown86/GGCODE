@@ -195,15 +195,16 @@ class TextWithScrollBars(tk.Frame):
                             chunk = msgtext[line][cursor:]
                         else:
                             chunk = msgtext[line][cursor:endpoint]
-                        if chunk != '%' and len(chunk) == 1:
-                            endpoint += 1
-                            if msgtext[line][endpoint].isnumeric() or msgtext[line][endpoint] == '.':
-                                while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
-                                    endpoint += 1
-                                if endpoint >= len(msgtext[line]):
-                                    chunk = msgtext[line]
-                                else:
-                                    chunk = msgtext[line][cursor:endpoint].replace(' ', '')
+                        if '%' in chunk and len(chunk) == 1:
+                            break
+                        if msgtext[line][endpoint].isnumeric() or msgtext[line][endpoint] == '.':
+                            while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
+                                endpoint += 1
+                            if endpoint >= len(msgtext[line]):
+                                chunk = msgtext[line]
+                            else:
+                                chunk = msgtext[line][cursor:endpoint].replace(' ', '')
+                        endpoint += 1
                         cursor_add = str(line_num) + '.' + str(cursor)
                         endpoint_add = str(line_num) + '.' + str(endpoint)
 
