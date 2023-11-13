@@ -272,6 +272,10 @@ class ToolTab(tk.Frame):
             org_len = len(text)
             for line in range(len(text)):
                 line = line + len(text) - org_len
+                if not text[line]:
+                    continue
+                if text[line][0] == '(':
+                    continue
                 if len(text[line]) > 0:
                     if text[line][0] == 'O' and insert_bulk_comment_flag:
                         tool_comments = '\n (**TOOL LIST**) \n'
@@ -433,6 +437,17 @@ class ToolTab(tk.Frame):
             for key, value in tool_list.items():
                 self.tooltext_box.insert('end', f'{key} {value}\n')
             self.tooltext_box.config(state='disabled')
+
+            # Reset all checkboxes and entry widgets
+            self.update_tool_number_entry.delete(0, 'end')
+            self.update_tool_number_entry.insert(0, str(int(tool_number) + 1))
+            self.update_tool_diameter_entry.delete(0, 'end')
+            self.update_loc_entry.delete(0, 'end')
+            self.update_flutes_entry.delete(0, 'end')
+            self.update_tool_combobox.set('DRILL')
+            self.update_oal_entry.delete(0, 'end')
+            self.update_oh_entry.delete(0, 'end')
+            self.update_cr_entry.delete(0, 'end')
 
         # eventlog.listen('update_radio_lbl', update_radio_lbl)
         eventlog.listen('tool_list_regenerated', update_tool_entries)

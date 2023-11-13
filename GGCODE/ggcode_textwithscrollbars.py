@@ -47,12 +47,22 @@ class TextWithScrollBars(tk.Frame):
         self.text.tag_config('N', foreground='blue')
         self.text.tag_config('S', foreground='purple')
         self.text.tag_config('O', foreground='teal')
-        self.text.tag_config('F', foreground='gray')
+        self.text.tag_config('F', foreground='#DE5A27')
         self.text.tag_config('Z', foreground='brown')
         self.text.tag_config('R', foreground='gold')
         self.text.tag_config('D', foreground='magenta')
+        self.text.tag_config('A', foreground='#1AA4BD')
+        self.text.tag_config('B', foreground='#1A7BBD')
+        self.text.tag_config('I', foreground='#1A44BD')
+        self.text.tag_config('J', foreground='#5B1ABD')
+        self.text.tag_config('K', foreground='#AA1ABD')
+        self.text.tag_config('L', foreground='#36AD99')
+        self.text.tag_config('H', foreground='#E29F55')
+        self.text.tag_config('Q', foreground='#936129')
+        self.text.tag_config('P', foreground='#6F9329')
         alltaglist = {'GCODE': [], 'COORD': [], 'M': [], 'N': [], 'T': [], 'O': [], 'S': [], 'F': [], 'Z': [], 'R': [],
-                      'D': []}
+                      'D': [], 'A': [], 'B': [], 'X': [], 'Y': [], 'I': [], 'J': [], 'K': [], 'L': [], 'H': [], 'Q': [],
+                      'P': []}
 
         self.runonce = False
 
@@ -131,16 +141,17 @@ class TextWithScrollBars(tk.Frame):
 
             # Parse through document by indexed line soas to have the 'line' number for each line
             for line in range(len(msgtext)):
+                line_text = msgtext[line]
                 # Raise tapping flag when G84 is found and making sure a tool was found prior
-                if 'G84' in msgtext[line] and last_tool != 'blank':
+                if 'G84' in line_text and last_tool != 'blank':
                     mark_tap = True
                 # Continues to append tapping lines until G80 is found
-                if mark_tap and 'G80' not in msgtext[line]:
+                if mark_tap and 'G80' not in line_text:
                     tap_append.append((line + 2, msgtext[line]))
 
                 # Ensuring that the G80 found belongs to a tapping macro and not a 'reset modal parameters line'
                 # Populates dictbin_tapping, which is sent to tapping_tab
-                if 'G80' in msgtext[line] and 'G40' not in msgtext[line] and 'G17' not in msgtext[line]:
+                if 'G80' in line_text and 'G40' not in line_text and 'G17' not in line_text:
                     if 'Tap' in last_tool or 'TAP' in last_tool or 'tap' in last_tool:
                         tap_append.append((line + 2, msgtext[line]))
                         self.dictbin_tapping[last_tool if last_tool else 'blank'] = tap_append
@@ -149,14 +160,20 @@ class TextWithScrollBars(tk.Frame):
                         last_tool = ''
 
                 # Skipping comment lines
-                if '(' in msgtext[line] and ')' in msgtext[line] and 'T' not in msgtext[line]:
-                    continue
+                if '(' in line_text and ')' in line_text:
+                    if 'T' in line_text:
+                        if line_text.index('T') < line_text.index('(') or line_text.index('T') > line_text.index(')'):
+                            pass
+                        else:
+                            continue
+                    else:
+                        continue
 
                 # Isolates tool information and adds to dictbin_tools
-                if 'T' in msgtext[line]:
+                if 'T' in line_text:
                     # print(f'PRETTIER T: {msgtext[line]}')
                     # print(f'{dictbin_tools=}')
-                    if 'M06' in msgtext[line] or 'M6' in msgtext[line]:
+                    if 'M06' in line_text or 'M6' in line_text:
                         tstart = msgtext[line].index('T')
                         stop = tstart + 1
                         while stop < len(msgtext[line]) and msgtext[line][stop].isnumeric():
@@ -181,82 +198,102 @@ class TextWithScrollBars(tk.Frame):
                 # The following section prettifies the text in the textbox
                 cursor = 0
                 line_num = line + 1
-                upper_case = string.ascii_uppercase
-                while cursor < len(msgtext[line]):
-                    if len(msgtext[line]) <= 1:
-                        break
-                    if cursor >= len(msgtext[line]):
-                        break
-                    else:
-                        cursor_char = msgtext[line][cursor]
-                    if cursor_char == '(':
-                        end_comment_index = msgtext[line].index(')')
-                        if end_comment_index == len(msgtext[line]) - 1:
-                            break
-                        else:
-                            cursor = end_comment_index + 1
-                        cursor_char = msgtext[line].index(')')
-                    if cursor_char.isnumeric() or cursor_char == '.' or cursor_char == ' ':
+                upper_case = ['G', 'M', 'T', 'N', 'S', 'O', 'F', 'Z', 'R', 'D', 'Q', 'P', 'I', 'J', 'K', 'L', 'H', 'A',
+                              'B']
+                start = 0
+                end = 0
+                while cursor < len(line_text) and len(line_text) > 1:
+                    charviewer = line_text[cursor]
+                    if line_text[cursor] == ' ':
                         cursor += 1
-                        if cursor >= len(msgtext[line]):
-                            break
-                        cursor_char = msgtext[line][cursor]
-                    if cursor_char in upper_case:
-                        endpoint = cursor + 1
-                        while endpoint < len(msgtext[line]):
-                            if msgtext[line][endpoint].isnumeric():
-                                endpoint += 1
-                            elif msgtext[line][endpoint] == '.':
-                                endpoint += 1
+                        continue
+                    if line_text[cursor] == '(':
+                        while line_text[cursor] != ')':
+                            cursor += 1
+                        continue
+                    if line_text[cursor] in upper_case:
+                        start = cursor
+                        cursor += 1
+                        while line_text[cursor].isnumeric() or line_text[cursor] == '.' or line_text[cursor] == '-':
+                            charviewer = line_text[cursor]
+                            if line_text[cursor] == ' ':
+                                break
+                            if cursor == len(line_text):
+                                break
+                            cursor += 1
+                        end = cursor
+                        if end != len(line_text):
+                            chunk = msgtext[line][start:end]
+                        else:
+                            chunk = msgtext[line][start:]
+                        cursor_add = str(line_num) + '.' + str(start)
+                        endpoint_add = str(line_num) + '.' + str(end)
+
+                        if chunk:
+                            if len(chunk) > 1:
+                                if chunk[0] == 'G' and chunk[1].isnumeric():
+                                    self.text.tag_add('GCODE', cursor_add, endpoint_add)
+                                    alltaglist['GCODE'] += [(cursor_add, endpoint_add)]
+                                elif 'X' in chunk or 'Y' in chunk:
+                                    pass
+                                elif chunk[0] == 'M' and chunk[1].isnumeric():
+                                    self.text.tag_add('M', cursor_add, endpoint_add)
+                                    alltaglist['M'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'N' and chunk[1].isnumeric():
+                                    self.text.tag_add('N', cursor_add, endpoint_add)
+                                    alltaglist['N'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'T' and chunk[1].isnumeric():
+                                    self.text.tag_add('T', cursor_add, endpoint_add)
+                                    alltaglist['T'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'O' and chunk[1].isnumeric():
+                                    self.text.tag_add('O', cursor_add, endpoint_add)
+                                    alltaglist['O'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'S' and chunk[1].isnumeric():
+                                    self.text.tag_add('S', cursor_add, endpoint_add)
+                                    alltaglist['S'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'F' and chunk[1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('F', cursor_add, endpoint_add)
+                                    alltaglist['F'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'Z' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('Z', cursor_add, endpoint_add)
+                                    alltaglist['Z'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'R' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('R', cursor_add, endpoint_add)
+                                    alltaglist['R'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'D' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('D', cursor_add, endpoint_add)
+                                    alltaglist['D'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'A' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('A', cursor_add, endpoint_add)
+                                    alltaglist['A'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'B' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('B', cursor_add, endpoint_add)
+                                    alltaglist['B'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'I' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('I', cursor_add, endpoint_add)
+                                    alltaglist['I'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'J' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('J', cursor_add, endpoint_add)
+                                    alltaglist['J'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'K' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('K', cursor_add, endpoint_add)
+                                    alltaglist['K'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'L' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('L', cursor_add, endpoint_add)
+                                    alltaglist['L'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'H' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('H', cursor_add, endpoint_add)
+                                    alltaglist['H'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'Q' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('Q', cursor_add, endpoint_add)
+                                    alltaglist['Q'] += [(cursor_add, endpoint_add)]
+                                elif chunk[0] == 'P' and chunk[-1].isnumeric() or chunk[1] == '.':
+                                    self.text.tag_add('P', cursor_add, endpoint_add)
+                                    alltaglist['P'] += [(cursor_add, endpoint_add)]
+
                             else:
                                 break
-                        if endpoint >= len(msgtext[line]):
-                            endpoint = len(msgtext[line])
-                        chunk = msgtext[line][cursor:endpoint]
-                        cursor_add = str(line_num) + '.' + str(cursor)
-                        endpoint_add = str(line_num) + '.' + str(endpoint)
-                        if endpoint == len(msgtext[line]):
-                            break
-                        else:
-                            cursor = endpoint
-
-                        if len(chunk) > 1:
-                            if chunk[0] == 'G' and chunk[1].isnumeric():
-                                self.text.tag_add('GCODE', cursor_add, endpoint_add)
-                                alltaglist['GCODE'] += [(cursor_add, endpoint_add)]
-                            elif 'X' in chunk or 'Y' in chunk:
-                                pass
-                            elif chunk[0] == 'M' and chunk[1].isnumeric():
-                                self.text.tag_add('M', cursor_add, endpoint_add)
-                                alltaglist['M'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'N' and chunk[1].isnumeric():
-                                self.text.tag_add('N', cursor_add, endpoint_add)
-                                alltaglist['N'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'T' and chunk[1].isnumeric():
-                                self.text.tag_add('T', cursor_add, endpoint_add)
-                                alltaglist['T'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'O' and chunk[1].isnumeric():
-                                self.text.tag_add('O', cursor_add, endpoint_add)
-                                alltaglist['O'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'S' and chunk[1].isnumeric():
-                                self.text.tag_add('S', cursor_add, endpoint_add)
-                                alltaglist['S'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'F' and chunk[1].isnumeric() or chunk[1] == '.':
-                                self.text.tag_add('F', cursor_add, endpoint_add)
-                                alltaglist['F'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'Z' and chunk[-1].isnumeric() or chunk[1] == '.':
-                                self.text.tag_add('Z', cursor_add, endpoint_add)
-                                alltaglist['Z'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'R' and chunk[-1].isnumeric() or chunk[1] == '.':
-                                self.text.tag_add('R', cursor_add, endpoint_add)
-                                alltaglist['R'] += [(cursor_add, endpoint_add)]
-                            elif chunk[0] == 'D' and chunk[-1].isnumeric() or chunk[1] == '.':
-                                self.text.tag_add('D', cursor_add, endpoint_add)
-                                alltaglist['D'] += [(cursor_add, endpoint_add)]
-                        else:
-                            break
-                    else:
-                        cursor += 1
+                    cursor += 1
                 self.runonce = True
             # print(dictbin_tools)
             print(f'inside prettier it: {self.dictbin_tapping=}')
