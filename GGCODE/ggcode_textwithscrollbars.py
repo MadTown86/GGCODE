@@ -1,6 +1,6 @@
 import tkinter as tk
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
-
+import string
 
 class TextWithScrollBars(tk.Frame):
     """
@@ -9,7 +9,7 @@ class TextWithScrollBars(tk.Frame):
     It also has the following methods used for updating the text in the textbox:
     update_text - initializes the textbox with the contents of the file
     update_text_renumbering_event - updates the textbox with the contents of the file after renumbering
-    send_all_text - sends all text to the eventlog
+    send_all_text - sends all text to listener 'send_all_text'
     replace_tapping_text - replaces the tapping text with the new tapping text
     clear_tags - clears all tags from the textbox
     prettier_it - prettifies the text in the textbox
@@ -148,6 +148,10 @@ class TextWithScrollBars(tk.Frame):
                         mark_tap = False
                         last_tool = ''
 
+                # Skipping comment lines
+                if '(' in msgtext[line] and ')' in msgtext[line] and 'T' not in msgtext[line]:
+                    continue
+
                 # Isolates tool information and adds to dictbin_tools
                 if 'T' in msgtext[line]:
                     # print(f'PRETTIER T: {msgtext[line]}')
@@ -174,39 +178,47 @@ class TextWithScrollBars(tk.Frame):
                         last_tool = msgtext[line][tstart:stop] + '-----' + self.dictbin_tools[
                             msgtext[line][tstart:stop]]
 
-                # Skipping comment lines
-                if '(' in msgtext[line] and ')' in msgtext[line] and 'T' not in msgtext[line]:
-                    continue
-
-
                 # The following section prettifies the text in the textbox
                 cursor = 0
-                endpoint = 0
                 line_num = line + 1
-                while endpoint < len(msgtext[line]):
-                    if endpoint >= len(msgtext[line]):
+                upper_case = string.ascii_uppercase
+                while cursor < len(msgtext[line]):
+                    if len(msgtext[line]) <= 1:
                         break
-                    elif cursor >= len(msgtext[line]):
+                    if cursor >= len(msgtext[line]):
                         break
-                    elif msgtext[line][cursor] != ' ' and msgtext[line][0] != '(':
-                        while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
-                            endpoint += 1
-                        if endpoint >= len(msgtext[line]):
-                            chunk = msgtext[line][cursor:]
-                        else:
-                            chunk = msgtext[line][cursor:endpoint]
-                        if '%' in chunk and len(chunk) == 1:
+                    else:
+                        cursor_char = msgtext[line][cursor]
+                    if cursor_char == '(':
+                        end_comment_index = msgtext[line].index(')')
+                        if end_comment_index == len(msgtext[line]) - 1:
                             break
-                        if msgtext[line][endpoint].isnumeric() or msgtext[line][endpoint] == '.':
-                            while endpoint < len(msgtext[line]) and msgtext[line][endpoint] != ' ':
+                        else:
+                            cursor = end_comment_index + 1
+                        cursor_char = msgtext[line].index(')')
+                    if cursor_char.isnumeric() or cursor_char == '.' or cursor_char == ' ':
+                        cursor += 1
+                        if cursor >= len(msgtext[line]):
+                            break
+                        cursor_char = msgtext[line][cursor]
+                    if cursor_char in upper_case:
+                        endpoint = cursor + 1
+                        while endpoint < len(msgtext[line]):
+                            if msgtext[line][endpoint].isnumeric():
                                 endpoint += 1
-                            if endpoint >= len(msgtext[line]):
-                                chunk = msgtext[line]
+                            elif msgtext[line][endpoint] == '.':
+                                endpoint += 1
                             else:
-                                chunk = msgtext[line][cursor:endpoint].replace(' ', '')
-                        endpoint += 1
+                                break
+                        if endpoint >= len(msgtext[line]):
+                            endpoint = len(msgtext[line])
+                        chunk = msgtext[line][cursor:endpoint]
                         cursor_add = str(line_num) + '.' + str(cursor)
                         endpoint_add = str(line_num) + '.' + str(endpoint)
+                        if endpoint == len(msgtext[line]):
+                            break
+                        else:
+                            cursor = endpoint
 
                         if len(chunk) > 1:
                             if chunk[0] == 'G' and chunk[1].isnumeric():
@@ -241,15 +253,11 @@ class TextWithScrollBars(tk.Frame):
                             elif chunk[0] == 'D' and chunk[-1].isnumeric() or chunk[1] == '.':
                                 self.text.tag_add('D', cursor_add, endpoint_add)
                                 alltaglist['D'] += [(cursor_add, endpoint_add)]
-                            cursor = endpoint + 1
-                            endpoint = cursor + 1
-                    elif cursor < len(msgtext[line]) and msgtext[line][cursor] == ' ':
-                        cursor += 1
-                        endpoint = cursor + 1
+                        else:
+                            break
                     else:
                         cursor += 1
-                        endpoint = cursor + 1
-                    self.runonce = True
+                self.runonce = True
             # print(dictbin_tools)
             print(f'inside prettier it: {self.dictbin_tapping=}')
             print(f'inside prettier it:{self.dictbin_tools=}')
