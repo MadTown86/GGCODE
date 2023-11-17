@@ -4,6 +4,7 @@ from tkinter.ttk import Scrollbar
 from tkinter.ttk import Combobox
 from tkinter import Canvas
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
+import GGCODE.ggcode_exceptionhandler as ggcode_exceptionhandler
 
 
 class ToolTab(tk.Frame):
@@ -173,7 +174,8 @@ class ToolTab(tk.Frame):
             rowcount += 2
 
             # Store Tool Update Button - Bound to udpate_tool_event
-            self.update_tool_btn.bind('<Button-1>', udpate_tool_event)
+            self.update_tool_btn.bind("<Button-1>", udpate_tool_event)
+            self.update_tool_btn.bind("<Return>", udpate_tool_event)
 
             self.blank_lbl = tk.Label(self, text='', justify='center', background=bg_color)
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
@@ -204,7 +206,7 @@ class ToolTab(tk.Frame):
             """
             self.text = payload
             print('receive_current_text called - from GGCOD_ToolData.py')
-            print(f'{payload=}')
+            # print(f'{payload=}')
 
         def get_text():
             """
@@ -227,7 +229,7 @@ class ToolTab(tk.Frame):
             # Modify tool_list dictionary to concatenate the different string variables into one string
             tool_comment_dict = {}
             add_tool_list = header_commentvar.get()
-            print(f'{add_tool_list=}')
+            # print(f'{add_tool_list=}')
             updated_text = ''
 
             if not tool_list:
@@ -261,11 +263,10 @@ class ToolTab(tk.Frame):
                             tool_list_text += f'{value["COMMENTS"].replace("(", "").replace(")", "")}'
                             tool_list_text += ')'
                         tool_comment_dict[key] = tool_list_text
-                print(f'{tool_comment_dict=}')
+                # print(f'{tool_comment_dict=}')
 
             text = self.text.split('\n')
             insert_bulk_comment_flag = bool(header_commentvar.get())
-            org_tool = None
             update_flag = False
 
             # If checkbox 'Add Tool Comments' then add tool comments
@@ -285,18 +286,22 @@ class ToolTab(tk.Frame):
                         tool_comments = tool_comments.split('\n')
                         for index in range(len(tool_comments) - 1, 0, -1):
                             text.insert(line + 1, tool_comments[index])
-                if 'T' in text[line] and 'M06' in text[line] or 'T' in text[line] and 'M6' in text[line]:
+                if ('T' in text[line] and 'M06' in text[line] and text[line][0] != '('
+                        or 'T' in text[line] and 'M6' in text[line] and text[line][0] != '('):
                     update_flag = False
                     start = text[line].index('T')
                     stop = start + 1
+                    lessThanLineFlag = False
+                    org_tool = None
                     while stop < len(text[line]) and text[line][stop].isnumeric():
                         stop += 1
                     if stop < len(text[line]):
                         org_tool = text[line][start:stop]
+                        lessThanLineFlag = True
                     else:
                         org_tool = text[line][start:]
-                    for tool_id in tool_list.keys():
-                        if org_tool == tool_id or int(org_tool[1:]) == int(tool_id[1:]):
+                    if org_tool in tool_list.keys():
+                        if not lessThanLineFlag:
                             update_flag = True
                             text[line] = text[line][:start + 1] + tool_list[org_tool]['T']
                             if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
@@ -305,8 +310,13 @@ class ToolTab(tk.Frame):
                                 text.insert(line, f'({tool_comment_dict[org_tool]}')
                             else:
                                 text.insert(line, f'({tool_comment_dict[org_tool]}')
+
+                        else:
+                            update_flag = True
+                            text[line] = text[line][:start + 1] + tool_list[org_tool]['T'] + text[line][stop:]
+                            lessThanLineFlag = False
                     else:
-                        pass
+                        continue
                 if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
                     start = text[line].index('T')
                     stop = start + 1
@@ -316,11 +326,13 @@ class ToolTab(tk.Frame):
                         next_tool = text[line][start:stop]
                     else:
                         next_tool = text[line][start:]
-                    for tool_id in tool_list.keys():
-                        if next_tool == tool_id or int(next_tool[1:]) == int(tool_id[1:]):
-                            text[line] = text[line][:start + 1] + tool_list[next_tool]['T']
-                        else:
-                            continue
+                    print(f'{next_tool=}')
+                    print(f'{tool_list.keys()=}')
+                    if next_tool in tool_list.keys():
+                        text[line] = text[line][:start + 1] + tool_list[next_tool]['T']
+                    else:
+                        continue
+
                 if update_flag:
                     if 'H' in text[line] and '(' not in text[line]:
                         hindex = text[line].index('H')

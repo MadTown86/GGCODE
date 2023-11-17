@@ -338,7 +338,7 @@ class TappingTab(tk.Frame):
                         drillpoints.append(code_line)
                     elif 'G80' in code_line:
                         self.final_tap_elements[T] = [comment, drillmacro, drillpoints]
-            print(f'{self.final_tap_elements=}')
+            # print(f'{self.final_tap_elements=}')
             if not self.initialize:
                 add_tapping_elements()
             else:
@@ -369,7 +369,7 @@ class TappingTab(tk.Frame):
             self.initialize = True
         def update_tapping_elements():
             print('update_tapping_elements')
-            print(f'{self.final_tap_elements=}')
+            # print(f'{self.final_tap_elements=}')
             for item in self.canvas_frame.grid_slaves():
                 item.destroy()
             self.canvas_count = 0
@@ -497,7 +497,7 @@ class TappingTab(tk.Frame):
                     # final_tapping_output is a dictionary with the following format:
                     # {'T#': [('start line', 'stop line'), 'tapping adjustments']}
                     final_tapping_output[tool] = [(f'{start:.1f}', f'{stop:.1f}'), tapping_adjustments]
-                    print(f'{final_tapping_output=}')
+                    # print(f'{final_tapping_output=}')
 
             # replace_tapping_text is listened to by GGCODE_TextWithScrollbars.py
             eventlog.generate('replace_tapping_text', final_tapping_output)

@@ -83,7 +83,7 @@ class RenumberTab(tk.Frame):
             increment = '10'
 
         choice = self.v.get()
-        print(f'{choice=}')
+        # print(f'{choice=}')
         if choice == '1':
             print('No Changes')
         elif choice == '2':
@@ -131,7 +131,7 @@ class RenumberTab(tk.Frame):
         split_text = self.text.split('\n')
         for line_index in range(len(split_text)):
             current_line = split_text[line_index]
-            print(f'{current_line=}')
+            # print(f'{current_line=}')
             # print(f'{len(return_text)=}')
             leading_zero_length = len(maxn) - len(str(current_number))
             leading_zeroes = '0' * leading_zero_length
