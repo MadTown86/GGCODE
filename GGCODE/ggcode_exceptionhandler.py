@@ -5,11 +5,44 @@ from GGCODE.ggcode_errormsgbox import GGCODE_ErrorMsgBox as MB
 
 
 class ToolNotFoundException(BaseException):
+    """
+    This exception is raised when a tool is not found in the tool database.
+
+    This can be caused if during initial parsing whole tool numbers are not identified correctly.
+
+    Examples: If 'T' is incorrectly found as an initial tool number, then can't be found during parsing or updating.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.messagebox = MB()
         self.messagebox.setMsg('Tool Not Found')
         self.messagebox.setStackTrace(self.__context__)
-        MB.mainloop()
+        self.messagebox.start()
+
+class InvalidToolException(BaseException):
+    """
+    This exception is raised when no tool is selected when attempting to log tool update information.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.messagebox = MB()
+        self.messagebox.setMsg('Invalid Tool')
+        self.messagebox.setStackTrace(self.__context__)
+        self.messagebox.start()
+
+class InvalidFileFormat(BaseException):
+    """
+    This exception is raised when a few things aren't found in the file, which determines whether it is a valid GCODE
+    file or not.
+
+    The initial example is that the first line of the file that contains text needs to have a % symbol as does
+    the last line of text found in the file.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.messagebox = MB()
+        self.messagebox.setMsg('Invalid File Format')
+        self.messagebox.setStackTrace(self.__context__)
+        self.messagebox.start()
 
 

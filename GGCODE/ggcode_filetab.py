@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import filedialog as fd
 from tkinter import ttk
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
-import signal
+import GGCODE.ggcode_exceptionhandler as EH
+
 class FileTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs),
@@ -27,11 +28,22 @@ class FileTab(tk.Frame):
             :param SelectFileEvent:
             :return:
             """
-            self.rawfile = fd.askopenfile()
-            if self.rawfile is not None:
-                rawfile = self.rawfile
-                eventlog.generate('file_selected', rawfile)
-                eventlog.generate('show_contents_event', 'normal')
+            try:
+                self.rawfile = fd.askopenfile()
+                if self.rawfile is not None:
+                    rawfile = self.rawfile
+                    rawfile_tolist = rawfile.read().split('\n')
+                    # print(f'{rawfile_tolist=}')
+                    if '%' in rawfile_tolist[0] and '%' in rawfile_tolist[-1]:
+                        eventlog.generate('file_selected', rawfile.seek(0, 0))
+                        eventlog.generate('show_contents_event', 'normal')
+                    else:
+                        raise EH.InvalidFileFormat
+            except EH.InvalidFileFormat as e:
+                e.messagebox.setMsg('Invalid File Format')
+                e.messagebox.setStackTrace(e.__context__)
+                e.messagebox.start()
+
 
         browse_btn.bind("<Button 1>", select_file)
 

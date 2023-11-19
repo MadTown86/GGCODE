@@ -18,6 +18,7 @@ class ToolTab(tk.Frame):
                              'DOVE', 'RADIUS', 'TAPER', 'BORING', 'REAMER', 'ENGRAVE', 'PROBE']
         self.text = ''
 
+        # This will flag true when the layout is initialized the first time so it isn't run again
         self.initialize = False
 
         # Stores radiobuttons in a dictionary for easy access
@@ -238,6 +239,7 @@ class ToolTab(tk.Frame):
                 self.tooltext_box.insert('end', 'No Tool Data To Send')
                 self.tooltext_box.config(state='disabled')
             else:
+                print(f'{tool_list=}')
                 for key, value in tool_list.items():
                     tool_list_text = ''
                     if value['UPDATEBOOL']:
@@ -271,6 +273,7 @@ class ToolTab(tk.Frame):
 
             # If checkbox 'Add Tool Comments' then add tool comments
             org_len = len(text)
+            print(f'{tool_comment_dict}')
             for line in range(len(text)):
                 line = line + len(text) - org_len
                 if not text[line]:
@@ -291,32 +294,31 @@ class ToolTab(tk.Frame):
                     update_flag = False
                     start = text[line].index('T')
                     stop = start + 1
-                    lessThanLineFlag = False
-                    org_tool = None
                     while stop < len(text[line]) and text[line][stop].isnumeric():
                         stop += 1
                     if stop < len(text[line]):
                         org_tool = text[line][start:stop]
-                        lessThanLineFlag = True
                     else:
                         org_tool = text[line][start:]
-                    if org_tool in tool_list.keys():
-                        if not lessThanLineFlag:
+                    print(f'{org_tool=}')
+                    try:
+                        if org_tool in tool_list.keys():
                             update_flag = True
                             text[line] = text[line][:start + 1] + tool_list[org_tool]['T']
+                            print(f'{text[line]=} -- AFTER BEING ALTERED')
                             if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
                                 text[line - 1] = f'({tool_comment_dict[org_tool]}'
                             elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
                                 text.insert(line, f'({tool_comment_dict[org_tool]}')
                             else:
                                 text.insert(line, f'({tool_comment_dict[org_tool]}')
-
                         else:
-                            update_flag = True
-                            text[line] = text[line][:start + 1] + tool_list[org_tool]['T'] + text[line][stop:]
-                            lessThanLineFlag = False
-                    else:
-                        continue
+                            raise ggcode_exceptionhandler.ToolNotFoundException
+                    except ggcode_exceptionhandler.ToolNotFoundException as e:
+                        e.messagebox.setMsg('Tool Not Found')
+                        e.messagebox.setStackTrace(e.__context__)
+                        e.messagebox.start()
+
                 if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
                     start = text[line].index('T')
                     stop = start + 1
@@ -363,7 +365,6 @@ class ToolTab(tk.Frame):
             for key, value in payload.items():
                 btn_return_value = key[1:]
                 radio_count = 1
-                radio_lbl = str(key) + 'label'
                 chkbox_lbl = str(key).lower() + 'chkbox'
                 self.radio_lbl = (
                     Radiobutton(self.canvas_frame, text=key + ' ' + value, value=btn_return_value, variable=self.current_toolvar))
@@ -407,7 +408,16 @@ class ToolTab(tk.Frame):
 
         def udpate_tool_event(event):
             tool_id = 'T' + str(self.current_toolvar.get())
-            tool_number = self.update_tool_number_entry.get()
+            try:
+                tool_number = self.update_tool_number_entry.get()
+                if not tool_number.isnumeric() or int(tool_number) <= 0 or int(tool_number) > 9999:
+                    raise ggcode_exceptionhandler.InvalidToolException
+            except ggcode_exceptionhandler.InvalidToolException as e:
+                e.messagebox.setMsg('Invalid Tool Number')
+                e.messagebox.setStackTrace(e.__context__ if e.__context__ else None)
+                e.messagebox.start()
+
+
             if tool_id[1:] != tool_number:
                 for widget in self.canvas_frame.winfo_children():
                     if isinstance(widget, tk.Label):

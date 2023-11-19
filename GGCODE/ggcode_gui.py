@@ -8,6 +8,7 @@ import GGCODE.ggcode_renumbertab as ggcode_renumbertab
 import GGCODE.ggcode_tappingtab as ggcode_tappingtab
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
 import GGCODE.ggcode_tooltab as ggcode_tooldata
+import GGCODE.ggcode_workoffsettab as ggcode_workoffsettab
 
 class MRP:
     file = None
@@ -48,6 +49,10 @@ class MRP:
         self.tool_tab = ggcode_tooldata.ToolTab(self.tabs, bg='#D98E04', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
         self.tabs.add(self.tool_tab, text='TOOL DATA', state='normal')
         self.tabs.grid(column=0, row=0, sticky='nsew')
+        self.workoffsettab = ggcode_workoffsettab.WoTab(self.tabs, bg='#D98E04', border=5, borderwidth=5, padx=5, pady=5, relief='flat')
+        self.tabs.add(self.workoffsettab, text='WORK OFFSETS', state='normal')
+        self.tabs.grid(column=0, row=0, sticky='nsew')
+
 
         self.eventlogger.listen('file_selected', self.store_file)
 

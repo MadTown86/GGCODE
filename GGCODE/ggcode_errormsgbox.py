@@ -19,6 +19,8 @@ class GGCODE_ErrorMsgBox(tk.Tk):
         self.stacktrace.insert('1.0', 'Stack Trace')
         self.stacktrace.config(state='disabled')
         self.bind('<Configure>', self.resize)
+
+    def start(self):
         self.mainloop()
 
     def resize(self, event):
@@ -29,10 +31,16 @@ class GGCODE_ErrorMsgBox(tk.Tk):
         self.msg.config(text=msg)
 
     def setStackTrace(self, stacktrace):
-        self.stacktrace.config(state='normal')
-        self.stacktrace.delete('1.0', 'end')
-        self.stacktrace.insert('1.0', traceback.format_exception(type(stacktrace), stacktrace, stacktrace.__traceback__))
-        self.stacktrace.config(state='disabled')
+        if stacktrace is None:
+            self.stacktrace.config(state='normal')
+            self.stacktrace.delete('1.0', 'end')
+            self.stacktrace.insert('1.0', 'No stack trace')
+            self.stacktrace.config(state='disabled')
+        else:
+            self.stacktrace.config(state='normal')
+            self.stacktrace.delete('1.0', 'end')
+            self.stacktrace.insert('1.0', traceback.format_exception(type(stacktrace), stacktrace, stacktrace.__traceback__))
+            self.stacktrace.config(state='disabled')
 
 
 
