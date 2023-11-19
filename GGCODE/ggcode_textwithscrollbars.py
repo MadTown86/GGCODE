@@ -135,8 +135,8 @@ class TextWithScrollBars(tk.Frame):
             # This dictionary is sent to the tool_tab in an event generation
             self.dictbin_tools = {}
 
-            # This list of work offsets is sent to workoffset_tab in an event generation
-            self.listbin_workoffsets = []
+            # This set of work offsets is sent to workoffset_tab in an event generation
+            self.listbin_workoffsets = set()
 
             # mark_tap is a boolean that marks the beginning of a tapping cycle and reset once G80 is found
             mark_tap = False
@@ -174,7 +174,7 @@ class TextWithScrollBars(tk.Frame):
                         work_offset = line_text[start:stop]
                     else:
                         work_offset = line_text[start:]
-                    self.listbin_workoffsets.append(work_offset)
+                    self.listbin_workoffsets.add(work_offset)
 
                 # Skipping comment lines
                 process_flag = True
@@ -261,7 +261,7 @@ class TextWithScrollBars(tk.Frame):
                                         alltaglist['GCODE'] += [(cursor_add, endpoint_add)]
 
                                         if 60 > int(chunk[1:]) > 53:
-                                            self.listbin_workoffsets.append(chunk)
+                                            self.listbin_workoffsets.add(chunk)
 
                                     elif 'X' in chunk or 'Y' in chunk:
                                         pass
@@ -368,6 +368,7 @@ class TextWithScrollBars(tk.Frame):
             eventlog.listen('replace_tapping_text', replace_tapping_text)
 
             # workoffset_list_generated is listened to by workoffset_tab
+            print(f'{self.listbin_workoffsets=}')
             eventlog.generate('workoffset_list_generated', self.listbin_workoffsets)
 
         def re_update_text(msg):

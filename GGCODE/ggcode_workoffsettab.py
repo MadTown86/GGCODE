@@ -18,12 +18,16 @@ class WoTab(tk.Frame):
         super().__init__(*args, **kwargs)
         self.workoffsets = None
         bg_color = '#D98E04'
+        core_rowcount = 0
         self.workoffsets_lbl = tk.Label(self, text='Work Offsets Page', justify='center')
-        self.workoffsets_lbl.grid(column=0, row=0, sticky='ew')
+        self.workoffsets_lbl.grid(column=0, row=core_rowcount, sticky='ew')
+        self.workoffsets_lbl.columnconfigure(0, weight=1)
         self.grid(column=0, row=0, sticky='nsew')
+        core_rowcount += 1
 
         self.blank_lbl = tk.Label(self, text='', foreground=bg_color, justify='left')
-        self.blank_lbl.grid(column=0, row=1, sticky='ew')
+        self.blank_lbl.grid(column=0, row=core_rowcount, sticky='ew')
+        core_rowcount += 1
 
         self.yscrollbar_canvas = Scrollbar(self, orient='vertical')
 
@@ -36,9 +40,14 @@ class WoTab(tk.Frame):
         self.scrollable_frame.grid_propagate(False)
         self.scrollable_frame.propagate(False)
         self.yscrollbar_canvas.config(command=self.scrollable_frame.yview)
-        self.yscrollbar_canvas.grid(column=0, row=2, sticky='nsew')
-        self.scrollable_frame.grid(column=0, row=2, sticky='nsew')
-        self.canvas_frame.grid(column=0, row=2, sticky='nsew')
+        self.yscrollbar_canvas.grid(column=0, row=core_rowcount, sticky='ns')
+        self.scrollable_frame.grid(column=0, row=core_rowcount, sticky='nsew')
+        self.canvas_frame.grid(column=0, row=core_rowcount, sticky='nsew')
+        core_rowcount += 1
+
+        self.blank_lbl = tk.Label(self, text='', foreground=bg_color, justify='left')
+        self.blank_lbl.grid(column=0, row=core_rowcount, sticky='ew')
+        core_rowcount += 1
 
         self.G_Code_lbl = tk.Label(self.canvas_frame, text='Work Offset', justify='left')
         self.G_Code_lbl.grid(column=0, row=0, sticky='ew')
@@ -58,42 +67,51 @@ class WoTab(tk.Frame):
             :param payload:
             :return:
             """
-            for index_wo in range(len(payload)):
-                self.workoffsets = Radiobutton(self.canvas_frame, text=f'G{payload[index_wo]}',
-                                               variable=self.workoffset_selectionvar, value=payload[index_wo])
-                self.workoffsets.grid(column=0, row=index_wo + 1, sticky='ew')
-                self.workoffsets_updatelbl = tk.Label(self.canvas_frame, name=payload[index_wo]+'lbl',
+            internal_rowcount = 1
+            nonlocal core_rowcount
+            for workoffset in payload:
+                self.workoffsets = Radiobutton(self.canvas_frame, name='radio'+str(internal_rowcount), text=f'{workoffset}',
+                                               variable=self.workoffset_selectionvar, value=workoffset)
+                self.workoffsets.grid(column=0, row=internal_rowcount, sticky='ew')
+                self.workoffsets_updatelbl = tk.Label(self.canvas_frame, name=workoffset.lower()+'lbl',
                                                       text='', justify='left')
-                self.workoffsets_updatelbl.grid(column=1, row=index_wo + 1, sticky='ew')
+                self.workoffsets_updatelbl.grid(column=1, row=internal_rowcount, sticky='ew')
+                internal_rowcount += 1
                 self.radiobuttonlbl_bin.append(self.workoffsets_updatelbl)
 
             self.G_offsetlbl = tk.Label(self, text='G Offset', justify='left')
-            self.G_offsetlbl.grid(column=0, row=2, sticky='ew')
+            self.G_offsetlbl.grid(column=0, row=core_rowcount, sticky='ew')
             self.P_numberlbl = tk.Label(self, text='P Number', justify='left')
-            self.P_numberlbl.grid(column=1, row=2, sticky='ew')
+            self.P_numberlbl.grid(column=1, row=core_rowcount, sticky='ew')
+            core_rowcount += 1
             self.g_offset_entry = tk.Entry(self)
-            self.g_offset_entry.grid(column=0, row=3, sticky='ew')
+            self.g_offset_entry.grid(column=0, row=core_rowcount, sticky='ew')
             self.p_number_entry = tk.Entry(self)
-            self.p_number_entry.grid(column=1, row=3, sticky='ew')
+            self.p_number_entry.grid(column=1, row=core_rowcount, sticky='ew')
+            core_rowcount += 1
 
             self.blank_lbl = tk.Label(self, text='', foreground=bg_color, justify='left')
-            self.blank_lbl.grid(column=0, row=4, sticky='ew')
+            self.blank_lbl.grid(column=0, row=core_rowcount, sticky='ew')
+            core_rowcount += 1
+
             self.store_updates_btn = tk.Button(self, text='Update', justify='left', pady=10)
-            self.store_updates_btn.grid(column=0, row=5, sticky='ew')
+            self.store_updates_btn.grid(column=0, row=core_rowcount, sticky='ew')
             self.store_updates_btn.bind('<Button-1>', store_updates)
+            core_rowcount += 1
 
             self.contents_updatedicttext = tk.Text(self, bg='black', fg='white')
-            self.contents_updatedicttext.grid(column=0, row=6, sticky='nsew')
-            self.contents_updatedicttext.grid_columnconfigure(0, weight=1)
-            self.contents_updatedicttext.grid_rowconfigure(0, weight=1)
+            self.contents_updatedicttext.grid(column=0, row=core_rowcount, sticky='nsew')
             self.contents_updatedicttext.insert('1.0', 'Updated Contents')
             self.contents_updatedicttext.config(state='disabled')
+            core_rowcount += 1
 
             self.blank_lbl2 = tk.Label(self, text='', foreground=bg_color, justify='left')
-            self.blank_lbl2.grid(column=0, row=7, sticky='ew')
+            self.blank_lbl2.grid(column=0, row=core_rowcount, sticky='ew')
+            core_rowcount += 1
 
             self.update_file_btn = tk.Button(self, text='Update File', justify='left', pady=10)
-            self.update_file_btn.grid(column=0, row=8, sticky='ew')
+            self.update_file_btn.grid(column=0, row=core_rowcount, sticky='ew')
+            core_rowcount += 1
 
             self.initialized = True
 
