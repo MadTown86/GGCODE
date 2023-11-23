@@ -45,6 +45,7 @@ class ToolTab(tk.Frame):
                                        yscrollcommand=yscrollbar_canvas.set)
         self.canvas_frame = tk.Frame(self.scrollable_frame, bg='white', width=1000, height=1000)
         self.scrollable_frame.create_window((0, 0), window=self.canvas_frame, anchor='nw')
+        self.scrollable_frame.configure(border=0, highlightthickness=0)
         self.canvas_frame.propagate(False)
         self.scrollable_frame.grid_propagate(False)
         self.scrollable_frame.propagate(False)

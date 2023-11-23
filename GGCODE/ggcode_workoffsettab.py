@@ -3,7 +3,6 @@ This holds the work offset tab class information for GGCODE project.
 """
 
 import tkinter as tk
-from tkinter import Canvas
 from tkinter.ttk import Scrollbar
 from tkinter.ttk import Radiobutton
 from GGCODE.ggcode_eventhandler import EventHandler as eventlog
@@ -19,100 +18,119 @@ class WoTab(tk.Frame):
         self.workoffsets = None
         bg_color = '#D98E04'
         core_rowcount = 0
+        self.grid_columnconfigure(0, weight=50)
+        self.grid_columnconfigure(1, weight=50)
+        self.grid_columnconfigure(2, weight=0)
+
+        # First Section Elements
         self.workoffsets_lbl = tk.Label(self, text='Work Offsets Page', justify='center')
-        self.workoffsets_lbl.grid(column=0, row=core_rowcount, sticky='ew')
-        self.workoffsets_lbl.columnconfigure(0, weight=1)
-        self.grid(column=0, row=0, sticky='nsew')
+        self.workoffsets_lbl.grid(column=0, row=core_rowcount, columnspan=3, sticky='ew')
         core_rowcount += 1
 
-        self.blank_lbl = tk.Label(self, text='', foreground=bg_color, justify='left')
+        self.blank_lbl = tk.Label(self, text='', background=bg_color, justify='left')
         self.blank_lbl.grid(column=0, row=core_rowcount, sticky='ew')
         core_rowcount += 1
 
-        self.yscrollbar_canvas = Scrollbar(self, orient='vertical')
-
-        self.scrollable_frame = tk.Canvas(self, bg='white', width=600, height=200, scrollregion=(0, 0, 1000, 1000),
-                                          yscrollcommand=self.yscrollbar_canvas.set)
-
-        self.canvas_frame = tk.Frame(self.scrollable_frame, bg='white', width=1000, height=1000)
-        self.scrollable_frame.create_window((0, 0), window=self.canvas_frame, anchor='nw')
+        # Canvas Creation, Scrollbar Creation, Internal Frame Creation
+        self.workoffset_selectionvar = tk.StringVar()
+        yscrollbar_canvas = Scrollbar(self, orient='vertical')
+        self.scrollable_canvas = tk.Canvas(self, bg='white', width=400, height=100, scrollregion=(0, 0, 1000, 1000),
+                                           yscrollcommand=yscrollbar_canvas.set, borderwidth=0, relief='flat')
+        self.canvas_frame = tk.Frame(self.scrollable_canvas, bg="white", width=1000, height=1000, borderwidth=0)
+        self.scrollable_canvas.create_window((0, 0), window=self.canvas_frame, anchor='nw')
+        self.scrollable_canvas.configure(border=0, highlightthickness=0)
         self.canvas_frame.propagate(False)
-        self.scrollable_frame.grid_propagate(False)
-        self.scrollable_frame.propagate(False)
-        self.yscrollbar_canvas.config(command=self.scrollable_frame.yview)
-        self.yscrollbar_canvas.grid(column=0, row=core_rowcount, sticky='ns')
-        self.scrollable_frame.grid(column=0, row=core_rowcount, sticky='nsew')
-        self.canvas_frame.grid(column=0, row=core_rowcount, sticky='nsew')
+        self.scrollable_canvas.grid_propagate(False)
+        self.scrollable_canvas.propagate(False)
+
+        # Section 2 Elements - Grid
+        yscrollbar_canvas.config(command=self.scrollable_canvas.yview)
+        yscrollbar_canvas.grid(column=2, row=core_rowcount, sticky='ns')
+
+        self.scrollable_canvas.grid(column=0, columnspan=2, row=core_rowcount, sticky='nsew')
         core_rowcount += 1
 
-        self.blank_lbl = tk.Label(self, text='', foreground=bg_color, justify='left')
+        self.blank_lbl = tk.Label(self, text='', background=bg_color, justify='left')
         self.blank_lbl.grid(column=0, row=core_rowcount, sticky='ew')
         core_rowcount += 1
 
-        self.G_Code_lbl = tk.Label(self.canvas_frame, text='Work Offset', justify='left')
+        canvas_rowcount = 0
+        self.G_Code_lbl = tk.Label(self.canvas_frame, text='Work Offset', justify='center')
         self.G_Code_lbl.grid(column=0, row=0, sticky='ew')
-        self.Update_lbl = tk.Label(self.canvas_frame, text='Updated To', justify='left')
+        self.Update_lbl = tk.Label(self.canvas_frame, text='Updated To', justify='center')
         self.Update_lbl.grid(column=1, row=0, sticky='ew')
+        canvas_rowcount += 1
 
         self.initialized = False
         self.radiobuttonlbl_bin = []
         self.offset_updatesdict = {}
 
-        self.workoffset_selectionvar = tk.StringVar()
-
-
         def add_offsetradios(payload):
+            nonlocal canvas_rowcount
             """
             This method will add the radio buttons for each work offset.
             :param payload:
             :return:
             """
-            internal_rowcount = 1
             nonlocal core_rowcount
+            # Canvas Fill Elements - Dynamic - Section 2 - User Selection Elements
             for workoffset in payload:
-                self.workoffsets = Radiobutton(self.canvas_frame, name='radio'+str(internal_rowcount), text=f'{workoffset}',
+                self.workoffsets = Radiobutton(self.canvas_frame, name='radio'+str(canvas_rowcount), text=f'{workoffset}',
                                                variable=self.workoffset_selectionvar, value=workoffset)
-                self.workoffsets.grid(column=0, row=internal_rowcount, sticky='ew')
+                self.workoffsets.grid(column=0, row=canvas_rowcount, sticky='ew')
                 self.workoffsets_updatelbl = tk.Label(self.canvas_frame, name=workoffset.lower()+'lbl',
                                                       text='', justify='left')
-                self.workoffsets_updatelbl.grid(column=1, row=internal_rowcount, sticky='ew')
-                internal_rowcount += 1
+                self.blank_lblcol = tk.Label(self.canvas_frame, text='', justify='center', bg='white', padx=5)
+                self.blank_lblcol.grid(column=1, row=canvas_rowcount, sticky='ew')
+                self.workoffsets_updatelbl.grid(column=2, row=canvas_rowcount, sticky='ew')
+                canvas_rowcount += 1
                 self.radiobuttonlbl_bin.append(self.workoffsets_updatelbl)
 
+            # Section 3 Elements - Static : User Entry Elements
             self.G_offsetlbl = tk.Label(self, text='G Offset', justify='left')
             self.G_offsetlbl.grid(column=0, row=core_rowcount, sticky='ew')
             self.P_numberlbl = tk.Label(self, text='P Number', justify='left')
-            self.P_numberlbl.grid(column=1, row=core_rowcount, sticky='ew')
+            self.P_numberlbl.grid(column=1, row=core_rowcount, columnspan=2, sticky='ew')
             core_rowcount += 1
+
             self.g_offset_entry = tk.Entry(self)
             self.g_offset_entry.grid(column=0, row=core_rowcount, sticky='ew')
             self.p_number_entry = tk.Entry(self)
-            self.p_number_entry.grid(column=1, row=core_rowcount, sticky='ew')
+            self.p_number_entry.grid(column=1, row=core_rowcount, columnspan=2, sticky='ew')
             core_rowcount += 1
 
-            self.blank_lbl = tk.Label(self, text='', foreground=bg_color, justify='left')
+            self.blank_lbl = tk.Label(self, text='', background=bg_color, justify='left')
             self.blank_lbl.grid(column=0, row=core_rowcount, sticky='ew')
             core_rowcount += 1
 
-            self.store_updates_btn = tk.Button(self, text='Update', justify='left', pady=10)
+            self.store_updates_btn = tk.Button(self, text='Store Changes', justify='left', pady=10)
             self.store_updates_btn.grid(column=0, row=core_rowcount, sticky='ew')
             self.store_updates_btn.bind('<Button-1>', store_updates)
             core_rowcount += 1
 
-            self.contents_updatedicttext = tk.Text(self, bg='black', fg='white')
+            self.blank_lbl = tk.Label(self, text='', background=bg_color, justify='left')
+            self.blank_lbl.grid(column=0, row=core_rowcount, sticky='ew')
+            core_rowcount += 1
+
+            self.contents_lbl = tk.Label(self, text='Review Stored Changes', justify='left')
+            self.contents_lbl.grid(column=0, row=core_rowcount, sticky='ew')
+            core_rowcount += 1
+
+            self.contents_updatedicttext = tk.Text(self, bg='white', fg='black', height=10, width=50)
             self.contents_updatedicttext.grid(column=0, row=core_rowcount, sticky='nsew')
             self.contents_updatedicttext.insert('1.0', 'Updated Contents')
             self.contents_updatedicttext.config(state='disabled')
             core_rowcount += 1
 
-            self.blank_lbl2 = tk.Label(self, text='', foreground=bg_color, justify='left')
+            self.blank_lbl2 = tk.Label(self, text='', background=bg_color, justify='left')
             self.blank_lbl2.grid(column=0, row=core_rowcount, sticky='ew')
             core_rowcount += 1
 
-            self.update_file_btn = tk.Button(self, text='Update File', justify='left', pady=10)
+            self.update_file_btn = tk.Button(self, text='Send To File', justify='left', pady=10)
             self.update_file_btn.grid(column=0, row=core_rowcount, sticky='ew')
             core_rowcount += 1
 
+            # Set a class variable to True to indicate that this does not need to be run again
             self.initialized = True
 
         eventlog.listen('workoffset_list_generated', add_offsetradios)
