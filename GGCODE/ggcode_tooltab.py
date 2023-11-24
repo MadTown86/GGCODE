@@ -316,8 +316,13 @@ class ToolTab(tk.Frame):
                         else:
                             raise ggcode_exceptionhandler.ToolNotFoundException
                     except ggcode_exceptionhandler.ToolNotFoundException as e:
-                        e.messagebox.setMsg('Tool Not Found')
-                        e.messagebox.setStackTrace(e.__context__)
+                        msg_build = 'Tool Not Found Error\n'
+                        msg_build += f'{org_tool=}\n'
+                        msg_build += f'{tool_list.keys()=}\n'
+                        msg_build += f'{line=}\n'
+
+                        e.messagebox.setMsg(msg_build)
+                        e.messagebox.setStackTrace(msg_build)
                         e.messagebox.start()
 
                 if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:

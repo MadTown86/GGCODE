@@ -45,4 +45,14 @@ class InvalidFileFormat(BaseException):
         self.messagebox.setStackTrace(self.__context__)
         self.messagebox.start()
 
+class InvalidOffsetEntry(BaseException):
+    """
+    This exception is raised when an invalid offset is entered into the work offset tab.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+
+
 
