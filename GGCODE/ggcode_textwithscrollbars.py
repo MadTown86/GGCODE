@@ -118,6 +118,49 @@ class TextWithScrollBars(tk.Frame):
                     self.text.tag_remove(key, alltaglist[key][index_value][0], alltaglist[key][index_value][1])
                 alltaglist[key] = []
 
+        def tbmethod_tsfwdseek():
+            """
+            This function will seek out the tool number in the text box and return it.
+            :return:
+            """
+
+
+            tool = ''
+            text = self.text.get('1.0', 'end').split('\n')
+            line_num = 1.0
+            for line in text:
+                if 'T' in line and 'M06' in line or 'T' in line and 'M6' in line:
+                    start = line.index('T')
+                    stop = start + 1
+                    while stop < len(line) and line[stop].isnumeric():
+                        stop += 1
+                    if stop < len(line):
+                        tool = line[start:stop]
+                    else:
+                        tool = line[start:]
+
+        eventlog.listen('prev_tool_event', tbmethod_tsfwdseek)
+
+        def activate_textbox(payload):
+            """
+            This function will activate textbox for editing purposes.
+            :param payload:
+            :return:
+            """
+            self.text.config(state=payload)
+
+        eventlog.listen('activate_textbox', activate_textbox)
+
+        def deactivate_textbox(payload):
+            """
+            This function will deactivate textbox for editing purposes.
+            :param payload:
+            :return:
+            """
+            self.text.config(state=payload)
+
+        eventlog.listen('deactivate_textbox', deactivate_textbox)
+
         def prettier_it(msg):
             """
             This function will prettify the text in the textbox and also generates dictbin_tapping and dictbin_tools

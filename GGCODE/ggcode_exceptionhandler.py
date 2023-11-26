@@ -26,7 +26,7 @@ class InvalidToolException(BaseException):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.messagebox = MB()
-        self.messagebox.setMsg('Invalid Tool')
+        self.messagebox.setMsg(args)
         self.messagebox.setStackTrace(self.__context__)
         self.messagebox.start()
 

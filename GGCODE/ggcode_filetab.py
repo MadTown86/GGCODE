@@ -8,18 +8,44 @@ class FileTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs),
         self.rawfile = None
+        self.bg_color = '#9C5935'
         eventlog = ggcode_eventhandler.EventHandler()
 
+        row_count = 0
+
         browse_lbl = tk.Label(self, text='Please Choose An *.NC File Or Equivalent', justify='left')
-        browse_btn = tk.Button(self, text='Browse', justify='left', pady=10)
+        blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
+        browse_btn = tk.Button(self, text='Browse', justify='left')
+
+
+
         show_contentslbl = tk.Label(self, text='Click To Show File Contents', justify='left')
         contents_btn = ttk.Button(self, text='Initial Scan', state='disabled')
 
-        browse_lbl.grid(column=0, row=0, sticky='ew')
-        browse_btn.grid(column=0, row=1, sticky='w')
-        show_contentslbl.grid(column=0, row=2, sticky='ew')
-        contents_btn.grid(column=0, row=3, sticky='w')
-        self.grid_rowconfigure('1 2 3 4', uniform='1')
+        browse_lbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        blank_lbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        browse_btn.grid(column=0, row=row_count, sticky='w')
+        row_count += 1
+        blank_lbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        show_contentslbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        blank_lbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        contents_btn.grid(column=0, row=row_count, sticky='w')
+        row_count += 1
+        blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
+        blank_lbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
+        blank_lbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        activate_textbox_btn = tk.Button(self, text='Activate Textbox', justify='left')
+        activate_textbox_btn.grid(column=0, row=row_count, sticky='w')
+        row_count += 1
+        self.grid_rowconfigure(' '.join(str(x) for x in range(1, row_count+1)), uniform='1')
         self.grid(column=0, row=0, sticky='nsew')
 
         def select_file(SelectFileEvent):
@@ -56,6 +82,7 @@ class FileTab(tk.Frame):
             """
             contents_btn.config(state=payload)
             contents_btn.bind("<Button-1>", show_contents)
+
         def show_contents(Event):
             for kind in eventlog.listeners:
                 print(f'{kind=}')
@@ -71,3 +98,11 @@ class FileTab(tk.Frame):
         eventlog.listen('show_contents_event', activate_content)
         eventlog.listen('disable_show', disable_show)
 
+
+    @staticmethod
+    def activate_textbox(self):
+        self.eventlogger.generate('activate_textbox', 'normal')
+
+    @staticmethod
+    def deactivate_textbox(self):
+        self.eventlogger.generate('deactivate_textbox', 'disabled')

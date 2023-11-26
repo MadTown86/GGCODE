@@ -302,28 +302,18 @@ class ToolTab(tk.Frame):
                     else:
                         org_tool = text[line][start:]
                     print(f'{org_tool=}')
-                    try:
-                        if org_tool in tool_list.keys():
-                            update_flag = True
-                            text[line] = text[line][:start + 1] + tool_list[org_tool]['T']
-                            print(f'{text[line]=} -- AFTER BEING ALTERED')
-                            if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
-                                text[line - 1] = f'({tool_comment_dict[org_tool]}'
-                            elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
-                                text.insert(line, f'({tool_comment_dict[org_tool]}')
-                            else:
-                                text.insert(line, f'({tool_comment_dict[org_tool]}')
+                    if org_tool in tool_list.keys():
+                        update_flag = True
+                        text[line] = text[line][:start + 1] + tool_list[org_tool]['T']
+                        print(f'{text[line]=} -- AFTER BEING ALTERED')
+                        if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
+                            text[line - 1] = f'({tool_comment_dict[org_tool]}'
+                        elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
+                            text.insert(line, f'({tool_comment_dict[org_tool]}')
                         else:
-                            raise ggcode_exceptionhandler.ToolNotFoundException
-                    except ggcode_exceptionhandler.ToolNotFoundException as e:
-                        msg_build = 'Tool Not Found Error\n'
-                        msg_build += f'{org_tool=}\n'
-                        msg_build += f'{tool_list.keys()=}\n'
-                        msg_build += f'{line=}\n'
-
-                        e.messagebox.setMsg(msg_build)
-                        e.messagebox.setStackTrace(msg_build)
-                        e.messagebox.start()
+                            text.insert(line, f'({tool_comment_dict[org_tool]}')
+                    else:
+                        continue
 
                 if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
                     start = text[line].index('T')
