@@ -90,6 +90,16 @@ class MRP:
 
         self.confirm_btn.bind("<Button-1>", confirm)
 
+        def prev_tool(event):
+            self.eventlogger.generate('prev_tool_event', 'backwards')
+
+        self.prev_tool_btn.bind("<Button-1>", prev_tool)
+
+        def next_tool(event):
+            self.eventlogger.generate('next_tool_event', 'forwards')
+
+        self.next_tool_btn.bind("<Button-1>", next_tool)
+
     def start(self):
         self.root.mainloop()
 
@@ -97,13 +107,11 @@ class MRP:
 
 
 
-    @staticmethod
-    def prev_tool(self):
-        self.eventlogger.generate('prev_tool_event', 'backwards')
 
-    @staticmethod
-    def next_tool(self):
-        self.eventlogger.generate('next_tool_event', 'forwards')
+
+
+
+
 
     @staticmethod
     def activate_text(self):

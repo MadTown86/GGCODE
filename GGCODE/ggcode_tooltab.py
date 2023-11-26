@@ -216,7 +216,9 @@ class ToolTab(tk.Frame):
             :return:
             """
             print('get_text called - from GGCOD_ToolData.py')
-            eventlog.generate('get_text', ('1.0', 'end'))
+            eventlog.generate('get_text_tools', ('1.0', 'end', 'tools'))
+
+        eventlog.listen('send_text_tools', receive_current_text)
 
         def send_changes_to_file(event):
             """
@@ -240,7 +242,6 @@ class ToolTab(tk.Frame):
                 self.tooltext_box.insert('end', 'No Tool Data To Send')
                 self.tooltext_box.config(state='disabled')
             else:
-                print(f'{tool_list=}')
                 for key, value in tool_list.items():
                     tool_list_text = ''
                     if value['UPDATEBOOL']:
@@ -274,7 +275,6 @@ class ToolTab(tk.Frame):
 
             # If checkbox 'Add Tool Comments' then add tool comments
             org_len = len(text)
-            print(f'{tool_comment_dict}')
             for line in range(len(text)):
                 line = line + len(text) - org_len
                 if not text[line]:
@@ -301,11 +301,9 @@ class ToolTab(tk.Frame):
                         org_tool = text[line][start:stop]
                     else:
                         org_tool = text[line][start:]
-                    print(f'{org_tool=}')
                     if org_tool in tool_list.keys():
                         update_flag = True
                         text[line] = text[line][:start + 1] + tool_list[org_tool]['T']
-                        print(f'{text[line]=} -- AFTER BEING ALTERED')
                         if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
                             text[line - 1] = f'({tool_comment_dict[org_tool]}'
                         elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
@@ -324,8 +322,8 @@ class ToolTab(tk.Frame):
                         next_tool = text[line][start:stop]
                     else:
                         next_tool = text[line][start:]
-                    print(f'{next_tool=}')
-                    print(f'{tool_list.keys()=}')
+                    # print(f'{next_tool=}')
+                    # print(f'{tool_list.keys()=}')
                     if next_tool in tool_list.keys():
                         text[line] = text[line][:start + 1] + tool_list[next_tool]['T']
                     else:
@@ -413,7 +411,6 @@ class ToolTab(tk.Frame):
                 e.messagebox.setStackTrace(e.__context__ if e.__context__ else None)
                 e.messagebox.start()
 
-
             if tool_id[1:] != tool_number:
                 for widget in self.canvas_frame.winfo_children():
                     if isinstance(widget, tk.Label):
@@ -470,4 +467,4 @@ class ToolTab(tk.Frame):
         # eventlog.listen('update_radio_lbl', update_radio_lbl)
         eventlog.listen('tool_list_regenerated', update_tool_entries)
         eventlog.listen('tool_list_generated', add_tool_entries)
-        eventlog.listen('send_all_text', receive_current_text)
+

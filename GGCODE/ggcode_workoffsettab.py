@@ -161,7 +161,6 @@ class WoTab(tk.Frame):
                 elif slave in self.radiobuttonlbl_bin.values():
                     slave.destroy()
 
-
         def update_offsetradiolbls(payload):
             """
             This method will update the radio buttons for each work offset.
@@ -180,7 +179,6 @@ class WoTab(tk.Frame):
             self.contents_updatedicttext.delete('1.0', 'end')
             self.contents_updatedicttext.insert('1.0', payload)
             self.contents_updatedicttext.config(state='disabled')
-
 
         def update_contents():
             """
@@ -281,12 +279,11 @@ class WoTab(tk.Frame):
                             raise EH.InvalidOffsetEntry
 
                 if not error_flag:
-                    eventlog.generate('get_text', ('1.0', 'end'))
+                    eventlog.generate('get_text_workoffset', ('1.0', 'end', 'workoffset'))
                     eventlog.listen('workoffset_list_generated', add_offsetradios)
 
             except EH.InvalidOffsetEntry as e:
                 accumulated_offsets = []
-
 
         def receive_current_text(payload):
             """
@@ -316,7 +313,8 @@ class WoTab(tk.Frame):
             eventlog.generate('re_update_text', res_text)
             # print(f'{payload=}')
 
+        eventlog.listen('send_text_workoffset', receive_current_text)
 
 
 
-        eventlog.listen('send_all_text', receive_current_text)
+

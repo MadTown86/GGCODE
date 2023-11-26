@@ -65,8 +65,6 @@ class TappingTab(tk.Frame):
 
         self.grid(column=0, row=0, sticky='nsew')
 
-
-
         def add_options():
             """
             This method generates the options for the tapping tab and is not dynamic
@@ -142,7 +140,6 @@ class TappingTab(tk.Frame):
             self.send_button.grid(column=0, columnspan=2, row=count, sticky='ew')
             self.send_button.bind("<Button-1>", adjust_tapping_code)
             count += 1
-
 
         def show_tappingtext_event(payload):
             """
@@ -344,7 +341,6 @@ class TappingTab(tk.Frame):
             else:
                 update_tapping_elements()
 
-
         def add_tapping_elements():
             print('add_tapping_elements')
             # This section is generating a radiobutton by tap found and adding it to the tapping tab
@@ -367,6 +363,7 @@ class TappingTab(tk.Frame):
             else:
                 pass
             self.initialize = True
+
         def update_tapping_elements():
             print('update_tapping_elements')
             # print(f'{self.final_tap_elements=}')

@@ -12,7 +12,7 @@ class RenumberTab(tk.Frame):
         self.eventlog = ggcode_eventhandler.EventHandler()
 
         self.v = tk.StringVar(self)
-        self.ren_lbl_1 = tk.Label(self, text="Please Choose One Renumber Option", justify='center')
+        ren_lbl_1 = tk.Label(self, text="Please Choose One Renumber Option", justify='center')
         self.no_radio = tk.Radiobutton(self, text='No Changes', value='1', variable=self.v)
         self.remove_radio = tk.Radiobutton(self, text='Remove N Numbers', value='2', variable=self.v)
         self.renumber_radio = tk.Radiobutton(self, text='Renumber All Lines', value='3', variable=self.v)
@@ -25,7 +25,7 @@ class RenumberTab(tk.Frame):
         self.start_entry = tk.Entry(master=self, width=6, bg='white', justify='left')
 
         self.grid_rowconfigure('0 1 2 3 4 5 6 7 8 9 10', uniform='1')
-        self.ren_lbl_1.grid(column=0, row=0, sticky='ew')
+        ren_lbl_1.grid(column=0, row=0, sticky='ew')
         self.no_radio.grid(column=0, row=1, sticky='w')
         self.remove_radio.grid(column=0, row=2, sticky='w')
         self.renumber_radio.grid(column=0, row=3, sticky='w')
@@ -44,13 +44,13 @@ class RenumberTab(tk.Frame):
         self.sendtofile_btn.grid(column=0, row=12, sticky='ew')
         self.grid_rowconfigure(11, uniform='1')
 
-
-        def get_text(event):
+        def get_text_renumber(event):
             """
             This method will get the text from the text pane.
             :return: text: str
             """
-            self.eventlog.generate('get_text', ('1.0', 'end'))
+            print('renumber tab - get text generated')
+            self.eventlog.generate('get_text_renumbering', ('1.0', 'end', 'renumber'))
 
         def receive_all_text(payload):
             """
@@ -59,11 +59,11 @@ class RenumberTab(tk.Frame):
             :return: None
             """
             self.text = payload
-            print('received text')
+            print('renumber tab - received text')
             self.renumber_selection()
 
-        self.sendtofile_btn.bind("<Button-1>", get_text)
-        self.eventlog.listen('send_all_text', receive_all_text)
+        self.sendtofile_btn.bind("<Button-1>", get_text_renumber)
+        self.eventlog.listen('send_text_renumber', receive_all_text)
 
     def renumber_selection(self):
         """
@@ -95,7 +95,6 @@ class RenumberTab(tk.Frame):
         elif choice == '4':
             print('Only Tool Changes')
             self.only_tools(start, maxn, increment)
-
 
     def remove_numbers(self):
         """
@@ -180,7 +179,6 @@ class RenumberTab(tk.Frame):
         # print(f'{return_text=}')
         self.eventlog.generate('update_text_renumbering_event', return_text)
 
-
     def only_tools(self, start: str, maxn: str, increment: str):
         """
         This method will only renumber tool changes in the gcode file.
@@ -232,7 +230,6 @@ class RenumberTab(tk.Frame):
                     current_number += increment
             else:
                 return_text += current_line + '\n'
-
         self.eventlog.generate('update_text_renumbering_event', return_text)
 
 

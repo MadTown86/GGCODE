@@ -17,8 +17,6 @@ class FileTab(tk.Frame):
         blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
         browse_btn = tk.Button(self, text='Browse', justify='left')
 
-
-
         show_contentslbl = tk.Label(self, text='Click To Show File Contents', justify='left')
         contents_btn = ttk.Button(self, text='Initial Scan', state='disabled')
 
@@ -45,6 +43,9 @@ class FileTab(tk.Frame):
         activate_textbox_btn = tk.Button(self, text='Activate Textbox', justify='left')
         activate_textbox_btn.grid(column=0, row=row_count, sticky='w')
         row_count += 1
+        deactivate_textbox_btn = tk.Button(self, text='Deactivate Textbox', justify='left')
+        deactivate_textbox_btn.grid(column=0, row=row_count, sticky='w')
+        row_count += 1
         self.grid_rowconfigure(' '.join(str(x) for x in range(1, row_count+1)), uniform='1')
         self.grid(column=0, row=0, sticky='nsew')
 
@@ -70,9 +71,7 @@ class FileTab(tk.Frame):
                 e.messagebox.setStackTrace(e.__context__)
                 e.messagebox.start()
 
-
         browse_btn.bind("<Button 1>", select_file)
-
 
         def activate_content(payload):
             """
@@ -94,15 +93,15 @@ class FileTab(tk.Frame):
             contents_btn.config(state=payload)
             contents_btn.unbind("<Button-1>")
 
-
         eventlog.listen('show_contents_event', activate_content)
         eventlog.listen('disable_show', disable_show)
 
+        def activate_textbox(event):
+            eventlog.generate('activate_textbox', 'normal')
 
-    @staticmethod
-    def activate_textbox(self):
-        self.eventlogger.generate('activate_textbox', 'normal')
+        activate_textbox_btn.bind("<Button-1>", activate_textbox)
 
-    @staticmethod
-    def deactivate_textbox(self):
-        self.eventlogger.generate('deactivate_textbox', 'disabled')
+        def deactivate_textbox(event):
+            eventlog.generate('deactivate_textbox', 'disabled')
+
+        deactivate_textbox_btn.bind("<Button-1>", deactivate_textbox)
