@@ -1,6 +1,5 @@
 import tkinter as tk
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
-import string
 
 class TextWithScrollBars(tk.Frame):
     """
@@ -19,6 +18,8 @@ class TextWithScrollBars(tk.Frame):
         super().__init__(*args, **kwargs)
         self.dictbin_tools = {}
         self.dictbin_tapping = {}
+        self.tool_seek_positions = []
+        self.current_tool_position = 0
         self.current_tool_mark = None
 
         self.grid_propagate(False)
@@ -120,21 +121,35 @@ class TextWithScrollBars(tk.Frame):
                     self.text.tag_remove(key, alltaglist[key][index_value][0], alltaglist[key][index_value][1])
                 alltaglist[key] = []
 
-        def tbmethod_tsfwdseek():
+        def tbmethod_tsfwdseek(payload):
             """
             This function will seek out the tool number in the text box and return it.
             :return:
             """
+            print(f'{self.current_tool_position=}')
+            print(f'{len(self.tool_seek_positions)=}')
 
 
-            tool = ''
-            text = self.text.get('1.0', 'end').split('\n')
-            line_num = 1.0
-            for line in range(len(text)):
-                if 'T' in text[line] and 'M06' in text[line] or 'T' in text[line] and 'M6' in text[line]:
-                    see_index = line+1
+            if payload == 'forward':
+                if self.current_tool_position + 1 > len(self.tool_seek_positions)-1:
+                    self.current_tool_position = 0
+                    self.text.config(state='normal')
+                    self.text.see(self.tool_seek_positions[self.current_tool_position])
+                    self.text.config(state='disabled')
+                else:
+                    self.current_tool_position += 1
+                    self.text.config(state='normal')
+                    self.text.see(self.tool_seek_positions[self.current_tool_position])
+                    self.text.config(state='disabled')
+            elif payload == 'backward':
+                if self.current_tool_position - 1 < 0:
+                    self.current_tool_position = len(self.tool_seek_positions)-1
+                    self.text.see(self.tool_seek_positions[self.current_tool_position])
+                else:
+                    self.current_tool_position -= 1
+                    self.text.see(self.current_tool_position)
 
-        eventlog.listen('prev_tool_event', tbmethod_tsfwdseek)
+        eventlog.listen('tool_seek_event', tbmethod_tsfwdseek)
 
         def activate_textbox(payload):
             """
@@ -172,6 +187,7 @@ class TextWithScrollBars(tk.Frame):
 
             # This dictionary is sent to the tool_tab in an event generation
             self.dictbin_tools = {}
+            self.tool_seek_positions = []
 
             # This set of work offsets is sent to workoffset_tab in an event generation
             self.listbin_workoffsets = set()
@@ -242,6 +258,7 @@ class TextWithScrollBars(tk.Frame):
                             tool = msgtext[line][tstart:stop]
                         else:
                             tool = msgtext[line][tstart:]
+                        self.tool_seek_positions.append(line)
                         # print(f'{tool=}')
                         if tool not in self.dictbin_tools.keys():
                             if '(' in msgtext[line]:
@@ -385,6 +402,8 @@ class TextWithScrollBars(tk.Frame):
                     print(f'IndexError: {msgtext[line]}')
                     print(f'Cursor: {cursor}')
 
+            eventlog.generate('activate_tool_btns', True)
+
         def update_text(msg):
             """
             This function updates file_textbox with contents of chosen file
@@ -478,3 +497,4 @@ class TextWithScrollBars(tk.Frame):
         eventlog.listen('update_text', update_text)
         eventlog.listen('update_text_renumbering_event', update_text_renumbering_event)
         eventlog.listen('send_changes_to_file', update_tooling_text)
+

@@ -47,9 +47,9 @@ class MRP:
 
         # Tool Seek Buttons
         self.prev_tool_btn = tk.Button(master=self.root, text='<- Tool',
-                                       font=self.root_font, relief='raised', bg='#D3DBBD')
+                                       font=self.root_font, relief='raised', bg='#D3DBBD', state='disabled')
         self.next_tool_btn = tk.Button(master=self.root, text='Tool ->',
-                                       font=self.root_font, relief='raised', bg='#D3DBBD')
+                                       font=self.root_font, relief='raised', bg='#D3DBBD', state='disabled')
 
         self.prev_tool_btn.grid(column=0, row=1, sticky='w', padx=50)
         self.next_tool_btn.grid(column=0, row=1, sticky='e', padx=50)
@@ -82,6 +82,15 @@ class MRP:
 
         self.eventlogger.listen('file_selected', self.store_file)
 
+        def activate_tool_btns(payload):
+            if payload:
+                self.prev_tool_btn.config(state='normal')
+                self.next_tool_btn.config(state='normal')
+            else:
+                pass
+
+        self.eventlogger.listen('activate_tool_btns', activate_tool_btns)
+
         def confirm(event):
             text = self.textpane.text.get('1.0', 'end')
             file = fd.asksaveasfile()
@@ -91,12 +100,14 @@ class MRP:
         self.confirm_btn.bind("<Button-1>", confirm)
 
         def prev_tool(event):
-            self.eventlogger.generate('prev_tool_event', 'backwards')
+            print('prev_tool_called')
+            self.eventlogger.generate('tool_seek_event', 'backwards')
 
         self.prev_tool_btn.bind("<Button-1>", prev_tool)
 
         def next_tool(event):
-            self.eventlogger.generate('next_tool_event', 'forwards')
+            print('next_tool_called')
+            self.eventlogger.generate('tool_seek_event', 'forwards')
 
         self.next_tool_btn.bind("<Button-1>", next_tool)
 
