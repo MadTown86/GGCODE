@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import Scrollbar
 from tkinter import Canvas
+from tkinter.ttk import Radiobutton
 
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
 
@@ -20,7 +21,7 @@ class TappingTab(tk.Frame):
         super().__init__(*args, **kwargs)
         framecolor = '#CE663E'
         true_falsevar = tk.StringVar()
-        depthvar = tk.StringVar()
+        self.depthvar = tk.StringVar()
         toolvar = tk.StringVar()
         self.generated_radiobuttons = {}
         self.final_tap_elements = {}
@@ -37,7 +38,7 @@ class TappingTab(tk.Frame):
         yscrollbar_canvas = Scrollbar(self, orient='vertical')
 
         # Canvas Creation and Child Frame Creation
-        self.scrollable_frame = Canvas(self, bg='white', width=600, height=200, scrollregion=(0, 0, 1000, 1000),
+        self.scrollable_frame = Canvas(self, bg='white', width=400, height=200, scrollregion=(0, 0, 1000, 1000),
                                        yscrollcommand=yscrollbar_canvas.set)
         self.canvas_frame = tk.Frame(self.scrollable_frame, bg='white', width=1000, height=1000)
         self.scrollable_frame.create_window((0, 0), window=self.canvas_frame, anchor='nw')
@@ -72,25 +73,35 @@ class TappingTab(tk.Frame):
             """
             nonlocal count
             self.tap_lbl = tk.Label(self, text="Choose Repeat Rigid Tapping Options", justify='center')
-            self.taptrue_radio = tk.Radiobutton(self, text='True', value='True', variable=true_falsevar)
-            self.tapfalse_radio = tk.Radiobutton(self, text='False', value='False', variable=true_falsevar)
+            self.taptrue_radio = Radiobutton(self, text='True', value='True', variable=true_falsevar)
+            self.tapfalse_radio = Radiobutton(self, text='False', value='False',
+                                              variable=true_falsevar)
             self.tapdepth_lbl = tk.Label(self, text='Choose Depth Increment', justify='center')
-            self.tapthird_radio = tk.Radiobutton(self, text='Tap 1/3 Depth Increments', value='.33',
-                                            variable=depthvar, state='normal')
-            self.tapfourth_radio = tk.Radiobutton(self, text='Tap 1/4 Depth Increments', value='.25',
-                                             variable=depthvar, state='normal')
-            self.taphalf_radio = tk.Radiobutton(self, text='Tap 1/2 Depth Increments', value='.5',
-                                           variable=depthvar, state='normal')
-            self.tapfull_radio = tk.Radiobutton(self, text='Tap Full Depth', value='1.0', variable=depthvar)
+            self.tapthird_radio = Radiobutton(self, name='third', text='Tap 1/3 Depth Increments', value='.33',
+                                              variable=self.depthvar)
+            self.tapfourth_radio = Radiobutton(self, name='fourth', text='Tap 1/4 Depth Increments', value='.25',
+                                               variable=self.depthvar)
+            self.taphalf_radio = Radiobutton(self, name='half', text='Tap 1/2 Depth Increments', value='.5',
+                                             variable=self.depthvar)
+            self.tapfull_radio = Radiobutton(self, name='full', text='Tap Full Depth',
+                                             value='1.0', variable=self.depthvar)
+
             count += 1
             self.tab_spacer = tk.Label(self, text='', background=framecolor, justify='center', pady=5)
             self.tab_spacer.grid(column=0, columnspan=2, row=count, sticky='ew')
             count += 1
+
+            self.tap_lbl = tk.Label(self, text="Choose Repeat Rigid Tapping Options", justify='center')
             self.tap_lbl.grid(column=0, columnspan=2, row=count, sticky='ew')
             count += 1
-            self.taptrue_radio.grid(column=0, row=count, sticky='w')
-            self.tapfalse_radio.grid(column=1, row=count, sticky='e')
+
+            tk.Radiobutton(self, text='True', value='True',
+                           variable=true_falsevar, state='normal').grid(column=0, row=count, sticky='w')
+
+            tk.Radiobutton(self, text='False', value='False',
+                           variable=true_falsevar, state='normal').grid(column=1, row=count, sticky='e')
             count += 1
+
             self.tab_spacer1 = tk.Label(self, text='', background=framecolor, justify='center', pady=5)
             self.tab_spacer1.grid(column=0, columnspan=2, row=count, sticky='ew')
             count += 1

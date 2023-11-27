@@ -15,16 +15,16 @@ class FileTab(tk.Frame):
 
         browse_lbl = tk.Label(self, text='Please Choose An *.NC File Or Equivalent', justify='left')
         blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
-        browse_btn = tk.Button(self, text='Browse', justify='left')
+        browse_btn = tk.Button(self, text='Browse', justify='center')
 
-        show_contentslbl = tk.Label(self, text='Click To Show File Contents', justify='left')
+        show_contentslbl = tk.Label(self, text='Click To Scan Document', justify='left')
         contents_btn = ttk.Button(self, text='Initial Scan', state='disabled')
 
         browse_lbl.grid(column=0, row=row_count, sticky='ew')
         row_count += 1
         blank_lbl.grid(column=0, row=row_count, sticky='ew')
         row_count += 1
-        browse_btn.grid(column=0, row=row_count, sticky='w')
+        browse_btn.grid(column=0, row=row_count, sticky='s')
         row_count += 1
         blank_lbl.grid(column=0, row=row_count, sticky='ew')
         row_count += 1
@@ -32,19 +32,25 @@ class FileTab(tk.Frame):
         row_count += 1
         blank_lbl.grid(column=0, row=row_count, sticky='ew')
         row_count += 1
-        contents_btn.grid(column=0, row=row_count, sticky='w')
+        contents_btn.grid(column=0, row=row_count, sticky='s')
         row_count += 1
         blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
         blank_lbl.grid(column=0, row=row_count, sticky='ew')
+        row_count += 1
+        activate_tb_lbl = tk.Label(self, text='Click Activate To Allow Editing', justify='left')
+        activate_tb_lbl.grid(column=0, row=row_count, sticky='ew')
         row_count += 1
         blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
         blank_lbl.grid(column=0, row=row_count, sticky='ew')
         row_count += 1
         activate_textbox_btn = tk.Button(self, text='Activate Textbox', justify='left')
-        activate_textbox_btn.grid(column=0, row=row_count, sticky='w')
+        activate_textbox_btn.grid(column=0, row=row_count, sticky='s')
+        row_count += 1
+        blank_lbl = tk.Label(self, text='', bg=self.bg_color, justify='left')
+        blank_lbl.grid(column=0, row=row_count, sticky='ew')
         row_count += 1
         deactivate_textbox_btn = tk.Button(self, text='Deactivate Textbox', justify='left')
-        deactivate_textbox_btn.grid(column=0, row=row_count, sticky='w')
+        deactivate_textbox_btn.grid(column=0, row=row_count, sticky='s')
         row_count += 1
         self.grid_rowconfigure(' '.join(str(x) for x in range(1, row_count+1)), uniform='1')
         self.grid(column=0, row=0, sticky='nsew')

@@ -41,7 +41,7 @@ class ToolTab(tk.Frame):
         yscrollbar_canvas = Scrollbar(self, orient='vertical')
 
         # Canvas Creation and Child Frame Creation
-        self.scrollable_frame = Canvas(self, bg='white', width=600, height=200, scrollregion=(0, 0, 1000, 1000),
+        self.scrollable_frame = Canvas(self, bg='white', width=500, height=200, scrollregion=(0, 0, 1000, 1000),
                                        yscrollcommand=yscrollbar_canvas.set)
         self.canvas_frame = tk.Frame(self.scrollable_frame, bg='white', width=1000, height=1000)
         self.scrollable_frame.create_window((0, 0), window=self.canvas_frame, anchor='nw')
@@ -75,8 +75,6 @@ class ToolTab(tk.Frame):
         self.tool_list_lbl.grid(row=0, column=0, sticky='ew')
         self.toolchange_lbl = tk.Label(self.canvas_frame, text='Tool Number Change', justify='center')
         self.toolchange_lbl.grid(row=0, column=2, sticky='ew')
-        self.update_tool_chkbxlbl = tk.Label(self.canvas_frame, text='Update Tool', justify='center')
-        self.update_tool_chkbxlbl.grid(row=0, column=5, sticky='ew')
         canvas_rowcount += 1
         rowcount += 1
 
@@ -367,9 +365,6 @@ class ToolTab(tk.Frame):
                 self.radio_lbl.grid(column=0, row=canvas_rowcount, sticky='ew')
                 self.toolchange_lbl = tk.Label(self.canvas_frame, text='', name=str(key).lower(), justify='center', padx=5)
                 self.toolchange_lbl.grid(column=2, columnspan=2, row=canvas_rowcount, sticky='ew')
-                self.update_chkbx = tk.Checkbutton(self.canvas_frame, name=chkbox_lbl, variable=tk.BooleanVar(), pady=0)
-                self.update_chkbx.grid(column=5, row=canvas_rowcount, sticky='ew')
-                self.radiobutton_checkboxes[key] = self.update_chkbx
                 canvas_rowcount += 1
             self.blank_lbl = tk.Label(self, text='', justify='center', background=bg_color)
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
@@ -463,6 +458,7 @@ class ToolTab(tk.Frame):
             self.update_oal_entry.delete(0, 'end')
             self.update_oh_entry.delete(0, 'end')
             self.update_cr_entry.delete(0, 'end')
+            self.add_tc_checkbox.deselect()
 
         # eventlog.listen('update_radio_lbl', update_radio_lbl)
         eventlog.listen('tool_list_regenerated', update_tool_entries)

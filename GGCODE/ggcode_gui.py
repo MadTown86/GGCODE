@@ -114,16 +114,6 @@ class MRP:
     def start(self):
         self.root.mainloop()
 
-
-
-
-
-
-
-
-
-
-
     @staticmethod
     def activate_text(self):
         self.eventlogger.generate('show_contents_event', 'normal')

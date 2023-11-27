@@ -8,15 +8,23 @@ import GGCODE.ggcode_eventhandler as ggcode_eventhandler
 class RenumberTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        rowcount = 0
 
         self.eventlog = ggcode_eventhandler.EventHandler()
 
         self.v = tk.StringVar(self)
         ren_lbl_1 = tk.Label(self, text="Please Choose One Renumber Option", justify='center')
-        self.no_radio = tk.Radiobutton(self, text='No Changes', value='1', variable=self.v)
-        self.remove_radio = tk.Radiobutton(self, text='Remove N Numbers', value='2', variable=self.v)
-        self.renumber_radio = tk.Radiobutton(self, text='Renumber All Lines', value='3', variable=self.v)
-        self.onlytools_radio = tk.Radiobutton(self, text='Only Tool Changes', value='4', variable=self.v)
+        ren_lbl_1.grid(column=0, row=rowcount, sticky='ew')
+        rowcount += 1
+
+        text_for_radios = ['No Changes', 'Remove N Numbers', 'Renumber All Lines', 'Only Tool Changes']
+        for x in range(0, 4):
+            self.renumber_radios = tk.Radiobutton(self, name='radio' + str(x), text=text_for_radios[x], value=str(x+1), variable=self.v)
+            self.renumber_radios.grid(column=0, row=rowcount, sticky='w')
+            if x == 0:
+                self.renumber_radios.select()
+            rowcount += 1
+
         self.ren_lbl_2 = tk.Label(self, text='Enter Increment Value', justify='center')
         self.ren_lbl_3 = tk.Label(self, text='Enter Max N-Number', justify='center')
         self.ren_lbl_4 = tk.Label(self, text='Enter Starting N-Number', justify='center')
@@ -25,17 +33,18 @@ class RenumberTab(tk.Frame):
         self.start_entry = tk.Entry(master=self, width=6, bg='white', justify='left')
 
         self.grid_rowconfigure('0 1 2 3 4 5 6 7 8 9 10', uniform='1')
-        ren_lbl_1.grid(column=0, row=0, sticky='ew')
-        self.no_radio.grid(column=0, row=1, sticky='w')
-        self.remove_radio.grid(column=0, row=2, sticky='w')
-        self.renumber_radio.grid(column=0, row=3, sticky='w')
-        self.onlytools_radio.grid(column=0, row=4, sticky='w')
-        self.ren_lbl_2.grid(column=0, row=5, sticky='ew')
-        self.increment_entry.grid(column=0, row=6, sticky='w')
-        self.ren_lbl_3.grid(column=0, row=7, sticky='ew')
-        self.maxn_entry.grid(column=0, row=8, sticky='w')
-        self.ren_lbl_4.grid(column=0, row=9, sticky='ew')
-        self.start_entry.grid(column=0, row=10, sticky='w')
+        self.ren_lbl_2.grid(column=0, row=rowcount, sticky='ew')
+        rowcount += 1
+        self.increment_entry.grid(column=0, row=rowcount, sticky='w')
+        rowcount += 1
+        self.ren_lbl_3.grid(column=0, row=rowcount, sticky='ew')
+        rowcount += 1
+        self.maxn_entry.grid(column=0, row=rowcount, sticky='w')
+        rowcount += 1
+        self.ren_lbl_4.grid(column=0, row=rowcount, sticky='ew')
+        rowcount += 1
+        self.start_entry.grid(column=0, row=rowcount, sticky='w')
+        rowcount += 1
         self.grid(column=0, row=0, sticky='nsew')
 
         self.send_lbl = tk.Label(self, text='Click Pull Current Text In Window', justify='center')

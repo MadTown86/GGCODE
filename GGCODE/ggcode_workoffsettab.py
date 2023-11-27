@@ -38,7 +38,7 @@ class WoTab(tk.Frame):
         # Canvas Creation, Scrollbar Creation, Internal Frame Creation
         self.workoffset_selectionvar = tk.StringVar()
         yscrollbar_canvas = Scrollbar(self, orient='vertical')
-        self.scrollable_canvas = tk.Canvas(self, bg='white', width=400, height=100, scrollregion=(0, 0, 1000, 1000),
+        self.scrollable_canvas = tk.Canvas(self, bg='white', width=400, height=200, scrollregion=(0, 0, 1000, 1000),
                                            yscrollcommand=yscrollbar_canvas.set, borderwidth=0, relief='flat')
         self.canvas_frame = tk.Frame(self.scrollable_canvas, bg="white", width=1000, height=1000, borderwidth=0)
         self.scrollable_canvas.create_window((0, 0), window=self.canvas_frame, anchor='nw')
