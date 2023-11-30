@@ -128,26 +128,29 @@ class TextWithScrollBars(tk.Frame):
             """
             print(f'{self.current_tool_position=}')
             print(f'{len(self.tool_seek_positions)=}')
+            print(f'{self.tool_seek_positions[self.current_tool_position]}')
 
 
-            if payload == 'forward':
+            print(f'{payload=}')
+            if payload == 'forwards':
+                print(f'forward')
                 if self.current_tool_position + 1 > len(self.tool_seek_positions)-1:
                     self.current_tool_position = 0
                     self.text.config(state='normal')
-                    self.text.see(self.tool_seek_positions[self.current_tool_position])
+                    self.text.see(str(self.tool_seek_positions[self.current_tool_position])+'.0')
                     self.text.config(state='disabled')
                 else:
                     self.current_tool_position += 1
                     self.text.config(state='normal')
-                    self.text.see(self.tool_seek_positions[self.current_tool_position])
+                    self.text.see(str(self.tool_seek_positions[self.current_tool_position])+'.0')
                     self.text.config(state='disabled')
-            elif payload == 'backward':
+            elif payload == 'backwards':
                 if self.current_tool_position - 1 < 0:
                     self.current_tool_position = len(self.tool_seek_positions)-1
-                    self.text.see(self.tool_seek_positions[self.current_tool_position])
+                    self.text.see(str(self.tool_seek_positions[self.current_tool_position])+'.0')
                 else:
                     self.current_tool_position -= 1
-                    self.text.see(self.current_tool_position)
+                    self.text.see(str(self.tool_seek_positions[self.current_tool_position])+'.0')
 
         eventlog.listen('tool_seek_event', tbmethod_tsfwdseek)
 
@@ -250,6 +253,7 @@ class TextWithScrollBars(tk.Frame):
                             elif 'M6' in line_text:
                                 if line_text.index('M6') > line_text.index('('):
                                     continue
+                        self.tool_seek_positions.append(line)
                         tstart = msgtext[line].index('T')
                         stop = tstart + 1
                         while stop < len(msgtext[line]) and msgtext[line][stop].isnumeric():
@@ -258,7 +262,6 @@ class TextWithScrollBars(tk.Frame):
                             tool = msgtext[line][tstart:stop]
                         else:
                             tool = msgtext[line][tstart:]
-                        self.tool_seek_positions.append(line)
                         # print(f'{tool=}')
                         if tool not in self.dictbin_tools.keys():
                             if '(' in msgtext[line]:

@@ -176,7 +176,7 @@ class TappingTab(tk.Frame):
             """
             toolcontents = toolvar.get()
             true_falsecontents = true_falsevar.get()
-            depthcontents = depthvar.get()
+            depthcontents = self.depthvar.get()
             if 'T' in toolcontents and true_falsecontents != '' and depthcontents != '':
                 eventlog.generate('show_tappingtext_event', [toolcontents, true_falsecontents, depthcontents])
             elif 'T' not in toolcontents and true_falsecontents != '':
