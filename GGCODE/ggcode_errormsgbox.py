@@ -1,6 +1,4 @@
 import tkinter as tk
-import traceback
-import sys
 
 class GGCODE_ErrorMsgBox(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -12,35 +10,15 @@ class GGCODE_ErrorMsgBox(tk.Tk):
         self.grid_rowconfigure(0, weight=1)
         self.msg = tk.Label(self, text='Error', justify='left')
         self.msg.grid(column=0, row=0, sticky='nsew')
-        self.stacktrace = tk.Text(self, bg='black', fg='white')
-        self.stacktrace.grid(column=0, row=1, sticky='nsew')
-        self.stacktrace.grid_columnconfigure(0, weight=1)
-        self.stacktrace.grid_rowconfigure(0, weight=1)
-        self.stacktrace.insert('1.0', 'Stack Trace')
-        self.stacktrace.config(state='disabled')
-        self.bind('<Configure>', self.resize)
+        self.close_btn = tk.Button(self, text='Close', command=self.destroy)
+        self.close_btn.grid(column=0, row=1, sticky='s')
 
     def start(self):
         self.mainloop()
 
-    def resize(self, event):
-        self.msg.config(width=self.winfo_width())
-        self.stacktrace.config(width=self.winfo_width())
-
     def setMsg(self, msg):
         self.msg.config(text=msg)
 
-    def setStackTrace(self, stacktrace):
-        if stacktrace is None:
-            self.stacktrace.config(state='normal')
-            self.stacktrace.delete('1.0', 'end')
-            self.stacktrace.insert('1.0', 'No stack trace')
-            self.stacktrace.config(state='disabled')
-        else:
-            self.stacktrace.config(state='normal')
-            self.stacktrace.delete('1.0', 'end')
-            self.stacktrace.insert('1.0', traceback.format_exception(type(stacktrace), stacktrace, stacktrace.__traceback__))
-            self.stacktrace.config(state='disabled')
 
 
 

@@ -1,10 +1,12 @@
+
+import sys
 import tkinter as tk
 from tkinter.ttk import Radiobutton
 from tkinter.ttk import Scrollbar
 from tkinter.ttk import Combobox
 from tkinter import Canvas
+
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
-import GGCODE.ggcode_exceptionhandler as ggcode_exceptionhandler
 
 
 class ToolTab(tk.Frame):
@@ -13,9 +15,10 @@ class ToolTab(tk.Frame):
         self.grid(column=0, row=0, sticky='nsew')
         eventlog = ggcode_eventhandler.EventHandler()
         bg_color = '#D98E04'
-        tool_list = {}
+        self.tool_list = {}
         tool_type_choices = ['DRILL', 'RTAP', 'LTAP', 'SHELL', 'ENDMILL', 'BALL', 'CHAMFER', 'SPOT', 'CENTER', 'CSINK', 'BULL',
                              'DOVE', 'RADIUS', 'TAPER', 'BORING', 'REAMER', 'ENGRAVE', 'PROBE']
+        self.tool_list_from_textwithscrollbars = {}
         self.text = ''
 
         # This will flag true when the layout is initialized the first time so it isn't run again
@@ -51,7 +54,7 @@ class ToolTab(tk.Frame):
         self.scrollable_frame.propagate(False)
         yscrollbar_canvas.config(command=self.scrollable_frame.yview)
 
-        rowcount = 0 # Row counter for grid layout, main self.frame GGCODE_ToolData
+        rowcount = 0  # Row counter for grid layout, main self.frame GGCODE_ToolData
         # FIRST SECTION - Add Tool Section - GUI Elements
         header_commentvar = tk.BooleanVar() # Booleon selection for checkbox
         header_commentvar.set(False)
@@ -78,7 +81,7 @@ class ToolTab(tk.Frame):
         canvas_rowcount += 1
         rowcount += 1
 
-        def add_update_options():
+        def add_gui_elements():
             """
             THIRD SECTION - Add Tool Data Update Elements
             Having this section created upon initialization removes the possibility of user trying to enter data
@@ -149,7 +152,7 @@ class ToolTab(tk.Frame):
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
 
-            # Store Tool Update Button - Bound to udpate_tool_event
+            # Store Tool Update Button - Bound to store_tool_changes
             self.update_tool_btn = tk.Button(self, text='Store Tool Update')
             self.update_tool_btn.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
@@ -173,9 +176,9 @@ class ToolTab(tk.Frame):
             self.tooltext_box.config(state='disabled')
             rowcount += 2
 
-            # Store Tool Update Button - Bound to udpate_tool_event
-            self.update_tool_btn.bind("<Button-1>", udpate_tool_event)
-            self.update_tool_btn.bind("<Return>", udpate_tool_event)
+            # Store Tool Update Button - Bound to store_tool_changes
+            self.update_tool_btn.bind("<Button-1>", store_tool_changes)
+            self.update_tool_btn.bind("<Return>", store_tool_changes)
 
             self.blank_lbl = tk.Label(self, text='', justify='center', background=bg_color)
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
@@ -218,6 +221,19 @@ class ToolTab(tk.Frame):
 
         eventlog.listen('send_text_tools', receive_current_text)
 
+        def update_textbox_display(payload):
+            """
+            This method will update the text box display. It is called when the user clicks the 'Send Changes To File'
+            button.
+
+            :param payload:
+            :return:
+            """
+            self.tooltext_box.config(state='normal')
+            self.tooltext_box.delete('1.0', 'end')
+            self.tooltext_box.insert('end', payload)
+            self.tooltext_box.config(state='disabled')
+
         def send_changes_to_file(event):
             """
             This method will send the changes to the file. It is called when the user clicks the 'Send Changes To File'
@@ -233,126 +249,145 @@ class ToolTab(tk.Frame):
             add_tool_list = header_commentvar.get()
             # print(f'{add_tool_list=}')
             updated_text = ''
+            skip_flag = False
 
-            if not tool_list:
-                self.tooltext_box.config(state='normal')
-                self.tooltext_box.delete('1.0', 'end')
-                self.tooltext_box.insert('end', 'No Tool Data To Send')
-                self.tooltext_box.config(state='disabled')
-            else:
-                for key, value in tool_list.items():
-                    tool_list_text = ''
-                    if value['UPDATEBOOL']:
-                        for key2, value2 in value.items():
-                            if value2 == '':
-                                continue
-                            elif key2 == 'T':
-                                tool_list_text += f'{key2}:{value2} :'
-                            elif key2 == 'UPDATEBOOL':
-                                continue
-                            elif key2 == 'COMMENTS':
-                                continue
+            check_list = [x for x in self.tool_list_from_textwithscrollbars.keys()]
+
+            print(f'{check_list=}')
+
+            for key, value in self.tool_list.items():
+                check_list.remove(key)
+                check_list.append(str('T' + value['T']))
+
+            for tool in check_list:
+                if check_list.count(tool) > 1:
+                    update_textbox_display(f'Tool {tool} is listed more than once. '
+                                           f'Please remove duplicates and try again.')
+                    skip_flag = True
+                    break
+
+            if not skip_flag:
+                if not self.tool_list:
+                    update_textbox_display('No Tools Found')
+                else:
+                    for key, value in self.tool_list.items():
+                        tool_list_text = ''
+                        if value['UPDATEBOOL']:
+                            for key2, value2 in value.items():
+                                if value2 == '':
+                                    continue
+                                elif key2 == 'T':
+                                    tool_list_text += f'{key2}:{value2} :'
+                                elif key2 == 'UPDATEBOOL':
+                                    continue
+                                elif key2 == 'COMMENTS':
+                                    continue
+                                else:
+                                    tool_list_text += f'{key2}-{value2} '
+                            tool_list_text += ')'
+                            tool_comment_dict[key] = tool_list_text
+                        else:
+                            if not value['T']:
+                                tool_list_text += f'{key}: {value["COMMENTS"].replace("(", "").replace(")", "")}'
+                                tool_list_text += ')'
                             else:
-                                tool_list_text += f'{key2}-{value2} '
-                        tool_list_text += ')'
-                        tool_comment_dict[key] = tool_list_text
-                    else:
-                        if not value['T']:
-                            tool_list_text += f'{key}: {value["COMMENTS"].replace("(", "").replace(")", "")}'
-                            tool_list_text += ')'
-                        else:
-                            tool_list_text += f'T:{value["T"]} '
-                            tool_list_text += f'{value["COMMENTS"].replace("(", "").replace(")", "")}'
-                            tool_list_text += ')'
-                        tool_comment_dict[key] = tool_list_text
-                # print(f'{tool_comment_dict=}')
+                                tool_list_text += f'T:{value["T"]} '
+                                tool_list_text += f'{value["COMMENTS"].replace("(", "").replace(")", "")}'
+                                tool_list_text += ')'
+                            tool_comment_dict[key] = tool_list_text
+                    # print(f'{tool_comment_dict=}')
 
-            text = self.text.split('\n')
-            insert_bulk_comment_flag = bool(header_commentvar.get())
-            update_flag = False
+                text = self.text.split('\n')
+                insert_bulk_comment_flag = bool(header_commentvar.get())
+                update_flag = False
 
-            # If checkbox 'Add Tool Comments' then add tool comments
-            org_len = len(text)
-            for line in range(len(text)):
-                line = line + len(text) - org_len
-                if not text[line]:
-                    continue
-                if text[line][0] == '(':
-                    continue
-                if len(text[line]) > 0:
-                    if text[line][0] == 'O' and insert_bulk_comment_flag:
-                        tool_comments = '\n (**TOOL LIST**) \n'
-                        for key, value in tool_comment_dict.items():
-                            tool_comments += f'({value}\n'
-                        tool_comments += '(** END TOOL LIST **)\n'
-                        tool_comments = tool_comments.split('\n')
-                        for index in range(len(tool_comments) - 1, 0, -1):
-                            text.insert(line + 1, tool_comments[index])
-                if ('T' in text[line] and 'M06' in text[line] and text[line][0] != '('
-                        or 'T' in text[line] and 'M6' in text[line] and text[line][0] != '('):
-                    update_flag = False
-                    start = text[line].index('T')
-                    stop = start + 1
-                    while stop < len(text[line]) and text[line][stop].isnumeric():
-                        stop += 1
-                    if stop < len(text[line]):
-                        org_tool = text[line][start:stop]
-                    else:
-                        org_tool = text[line][start:]
-                    if org_tool in tool_list.keys():
-                        update_flag = True
-                        text[line] = text[line][:start + 1] + tool_list[org_tool]['T']
-                        if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
-                            text[line - 1] = f'({tool_comment_dict[org_tool]}'
-                        elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
-                            text.insert(line, f'({tool_comment_dict[org_tool]}')
-                        else:
-                            text.insert(line, f'({tool_comment_dict[org_tool]}')
-                    else:
+                # If checkbox 'Add Tool Comments' then add tool comments
+                org_len = len(text)
+                for line in range(len(text)):
+                    line = line + len(text) - org_len
+                    if not text[line]:
                         continue
-
-                if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
-                    start = text[line].index('T')
-                    stop = start + 1
-                    while stop < len(text[line]) and text[line][stop].isnumeric():
-                        stop += 1
-                    if stop < len(text[line]):
-                        next_tool = text[line][start:stop]
-                    else:
-                        next_tool = text[line][start:]
-                    # print(f'{next_tool=}')
-                    # print(f'{tool_list.keys()=}')
-                    if next_tool in tool_list.keys():
-                        text[line] = text[line][:start + 1] + tool_list[next_tool]['T']
-                    else:
+                    if text[line][0] == '(':
                         continue
+                    if len(text[line]) > 0:
+                        if text[line][0] == 'O' and insert_bulk_comment_flag:
+                            tool_comments = '\n (**TOOL LIST**) \n'
+                            for key, value in tool_comment_dict.items():
+                                tool_comments += f'({value}\n'
+                            tool_comments += '(** END TOOL LIST **)\n'
+                            tool_comments = tool_comments.split('\n')
+                            for index in range(len(tool_comments) - 1, 0, -1):
+                                text.insert(line + 1, tool_comments[index])
+                    if ('T' in text[line] and 'M06' in text[line] and text[line][0] != '('
+                            or 'T' in text[line] and 'M6' in text[line] and text[line][0] != '('):
+                        update_flag = False
+                        start = text[line].index('T')
+                        stop = start + 1
+                        while stop < len(text[line]) and text[line][stop].isnumeric():
+                            stop += 1
+                        if stop < len(text[line]):
+                            org_tool = text[line][start:stop]
+                        else:
+                            org_tool = text[line][start:]
+                        if org_tool in self.tool_list.keys():
+                            update_flag = True
+                            text[line] = text[line][:start + 1] + self.tool_list[org_tool]['T']
+                            if len(text[line - 1]) > 0 and text[line - 1][0] == '(':
+                                text[line - 1] = f'({tool_comment_dict[org_tool]}'
+                            elif len(text[line - 1]) > 0 and text[line - 1][0] != '(':
+                                text.insert(line, f'({tool_comment_dict[org_tool]}')
+                            else:
+                                text.insert(line, f'({tool_comment_dict[org_tool]}')
+                        else:
+                            continue
 
-                if update_flag:
-                    if 'H' in text[line] and '(' not in text[line]:
-                        hindex = text[line].index('H')
-                        hend = hindex + 1
-                        while hend < len(text[line]) and text[line][hend].isnumeric():
-                            hend += 1
-                        if hend >= len(text[line]):
-                            hend -= 1
-                        if tool_list[org_tool]['T'] != org_tool[1:]:
-                            text[line] = f'{text[line][:hindex + 1]}{tool_list[org_tool]["T"]}{text[line][hend:]}'
-                    if 'D' in text[line] and '(' not in text[line]:
-                        dindex = text[line].index('D')
-                        dend = dindex + 1
-                        if dend == len(text[line]):
-                            dend -= 1
-                        while dend < len(text[line]) and text[line][dend].isnumeric():
-                            dend += 1
-                        if tool_list[org_tool]['T'] != org_tool[1:]:
-                            text[line] = f'{text[line][:dindex + 1]}{tool_list[org_tool]["T"]}{text[line][dend:]}'
+                    if 'T' in text[line] and 'M06' not in text[line] and 'M6' not in text[line] and '(' not in text[line]:
+                        start = text[line].index('T')
+                        stop = start + 1
+                        while stop < len(text[line]) and text[line][stop].isnumeric():
+                            stop += 1
+                        if stop < len(text[line]):
+                            next_tool = text[line][start:stop]
+                        else:
+                            next_tool = text[line][start:]
+                        # print(f'{next_tool=}')
+                        # print(f'{tool_list.keys()=}')
+                        if next_tool in self.tool_list.keys():
+                            text[line] = text[line][:start + 1] + self.tool_list[next_tool]['T']
+                        else:
+                            continue
 
-            updated_text = '\n'.join(text)
-            eventlog.generate('re_update_text', updated_text)
+                    if update_flag:
+                        if 'H' in text[line] and '(' not in text[line]:
+                            hindex = text[line].index('H')
+                            hend = hindex + 1
+                            while hend < len(text[line]) and text[line][hend].isnumeric():
+                                hend += 1
+                            if hend >= len(text[line]):
+                                hend -= 1
+                            if self.tool_list[org_tool]['T'] != org_tool[1:]:
+                                text[line] = f'{text[line][:hindex + 1]}{self.tool_list[org_tool]["T"]}{text[line][hend:]}'
+                        if 'D' in text[line] and '(' not in text[line]:
+                            dindex = text[line].index('D')
+                            dend = dindex + 1
+                            if dend == len(text[line]):
+                                dend -= 1
+                            while dend < len(text[line]) and text[line][dend].isnumeric():
+                                dend += 1
+                            if self.tool_list[org_tool]['T'] != org_tool[1:]:
+                                text[line] = f'{text[line][:dindex + 1]}{self.tool_list[org_tool]["T"]}{text[line][dend:]}'
+
+
+
+                updated_text = '\n'.join(text)
+                eventlog.generate('re_update_text', updated_text)
+                self.tool_list = {}
+                update_textbox_display('')
 
         def add_tool_entries(payload):
             nonlocal rowcount
             nonlocal canvas_rowcount
+            self.tool_list_from_textwithscrollbars = payload
             self.original_comments = payload
             for key, value in payload.items():
                 btn_return_value = key[1:]
@@ -370,18 +405,20 @@ class ToolTab(tk.Frame):
             self.blank_lbl.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
             if not self.initialize:
-                add_update_options()
+                add_gui_elements()
                 self.initialize = True
             else:
                 pass
 
         def update_tool_entries(payload):
             """
-            This method will update the tool entries based on the tool selected by the user.
+            This method will update the tool entry widgets when the user clicks the 'Send Changes To File' button.
 
             :param payload: {tool_id: tool_data}
             :return:
             """
+
+            self.tool_list_from_textwithscrollbars = payload
 
             for item in self.canvas_frame.grid_slaves():
                 item.destroy()
@@ -395,70 +432,79 @@ class ToolTab(tk.Frame):
             canvas_rowcount += 1
             add_tool_entries(payload)
 
-        def udpate_tool_event(event):
+        def store_tool_changes(event):
+            """
+            Stores the users input into the tool_list dictionary.
+            :param event:
+            :return:
+            """
+            tool_number = None
+            temp_tool_number = self.update_tool_number_entry.get()
             tool_id = 'T' + str(self.current_toolvar.get())
-            try:
-                tool_number = self.update_tool_number_entry.get()
-                if not tool_number.isnumeric() or int(tool_number) <= 0 or int(tool_number) > 9999:
-                    raise ggcode_exceptionhandler.InvalidToolException
-            except ggcode_exceptionhandler.InvalidToolException as e:
-                e.messagebox.setMsg('Invalid Tool Number')
-                e.messagebox.setStackTrace(e.__context__ if e.__context__ else None)
-                e.messagebox.start()
 
-            if tool_id[1:] != tool_number:
-                for widget in self.canvas_frame.winfo_children():
-                    if isinstance(widget, tk.Label):
-                        if tool_id.lower() in widget.winfo_name() and len(tool_id.lower()) == len(widget.winfo_name()):
-                            widget.config(text=f'-> T{tool_number}')
+            if not tool_id or tool_id == 'T0' or tool_id == 'T':
+                update_textbox_display('No Tool Radio Selected')
             else:
-                for widget in self.canvas_frame.winfo_children():
-                    if isinstance(widget, tk.Label):
-                        if tool_id.lower() in widget.winfo_name() and len(tool_id.lower()) == len(widget.winfo_name()):
-                            widget.config(text=f'\'\' No Change \'\'')
-            diameter = self.update_tool_diameter_entry.get()
-            length_of_cut = self.update_loc_entry.get()
-            flutes = self.update_flutes_entry.get()
-            tool_type = self.update_tool_combobox.get()
-            oal = self.update_oal_entry.get()
-            oh = self.update_oh_entry.get()
-            cr = self.update_cr_entry.get()
-            update_flag = tool_commentvar.get()
-            for key in tool_list.keys():
-                if tool_list[key]['T'] == tool_number:
-                    pass
-            tool_list[tool_id] = {'T': '', 'UPDATEBOOL': False,
-                                  'D': '', 'LOC': '', 'F': '', 'TYPE': '',
-                                  'L': '', 'OH': '', 'COMMENTS': '', 'CR': ''}
+                if not temp_tool_number.isnumeric():
+                    update_textbox_display('Tool Number Must Be Numeric - NO "T" PREFIX')
+                elif 999 < int(temp_tool_number) < 1:
+                    update_textbox_display('Tool Number Must Be Between 1 and 999')
+                else:
+                    tool_number = temp_tool_number
+            if tool_number:
+                if tool_id[1:] != tool_number:
+                    for widget in self.canvas_frame.winfo_children():
+                        if isinstance(widget, tk.Label):
+                            if tool_id.lower() in widget.winfo_name() and len(tool_id.lower()) == len(widget.winfo_name()):
+                                widget.config(text=f'-> T{tool_number}')
+                else:
+                    for widget in self.canvas_frame.winfo_children():
+                        if isinstance(widget, tk.Label):
+                            if tool_id.lower() in widget.winfo_name() and len(tool_id.lower()) == len(widget.winfo_name()):
+                                widget.config(text=f'\'\' No Change \'\'')
+                diameter = self.update_tool_diameter_entry.get()
+                length_of_cut = self.update_loc_entry.get()
+                flutes = self.update_flutes_entry.get()
+                tool_type = self.update_tool_combobox.get()
+                oal = self.update_oal_entry.get()
+                oh = self.update_oh_entry.get()
+                cr = self.update_cr_entry.get()
+                update_flag = tool_commentvar.get()
+                for key in self.tool_list.keys():
+                    if self.tool_list[key]['T'] == tool_number:
+                        pass
+                self.tool_list[tool_id] = {'T': '', 'UPDATEBOOL': False,
+                                      'D': '', 'LOC': '', 'F': '', 'TYPE': '',
+                                      'L': '', 'OH': '', 'COMMENTS': '', 'CR': ''}
 
-            tool_list[tool_id]['T'] = tool_number
-            tool_list[tool_id]['D'] = diameter
-            tool_list[tool_id]['LOC'] = length_of_cut
-            tool_list[tool_id]['F'] = flutes
-            tool_list[tool_id]['TYPE'] = tool_type
-            tool_list[tool_id]['L'] = oal
-            tool_list[tool_id]['OH'] = oh
-            tool_list[tool_id]['CR'] = cr
-            if update_flag:
-                tool_list[tool_id]['UPDATEBOOL'] = True
-            tool_list[tool_id]['COMMENTS'] = self.original_comments[tool_id]
-            self.tooltext_box.config(state='normal')
-            self.tooltext_box.delete('1.0', 'end')
-            for key, value in tool_list.items():
-                self.tooltext_box.insert('end', f'{key} {value}\n')
-            self.tooltext_box.config(state='disabled')
+                self.tool_list[tool_id]['T'] = tool_number
+                self.tool_list[tool_id]['D'] = diameter
+                self.tool_list[tool_id]['LOC'] = length_of_cut
+                self.tool_list[tool_id]['F'] = flutes
+                self.tool_list[tool_id]['TYPE'] = tool_type
+                self.tool_list[tool_id]['L'] = oal
+                self.tool_list[tool_id]['OH'] = oh
+                self.tool_list[tool_id]['CR'] = cr
+                if update_flag:
+                    self.tool_list[tool_id]['UPDATEBOOL'] = True
+                self.tool_list[tool_id]['COMMENTS'] = self.original_comments[tool_id]
+                self.tooltext_box.config(state='normal')
+                self.tooltext_box.delete('1.0', 'end')
+                for key, value in self.tool_list.items():
+                    self.tooltext_box.insert('end', f'{key} {value}\n')
+                self.tooltext_box.config(state='disabled')
 
-            # Reset all checkboxes and entry widgets
-            self.update_tool_number_entry.delete(0, 'end')
-            self.update_tool_number_entry.insert(0, str(int(tool_number) + 1))
-            self.update_tool_diameter_entry.delete(0, 'end')
-            self.update_loc_entry.delete(0, 'end')
-            self.update_flutes_entry.delete(0, 'end')
-            self.update_tool_combobox.set('DRILL')
-            self.update_oal_entry.delete(0, 'end')
-            self.update_oh_entry.delete(0, 'end')
-            self.update_cr_entry.delete(0, 'end')
-            self.add_tc_checkbox.deselect()
+                # Reset all checkboxes and entry widgets
+                self.update_tool_number_entry.delete(0, 'end')
+                self.update_tool_number_entry.insert(0, str(int(tool_number) + 1))
+                self.update_tool_diameter_entry.delete(0, 'end')
+                self.update_loc_entry.delete(0, 'end')
+                self.update_flutes_entry.delete(0, 'end')
+                self.update_tool_combobox.set('DRILL')
+                self.update_oal_entry.delete(0, 'end')
+                self.update_oh_entry.delete(0, 'end')
+                self.update_cr_entry.delete(0, 'end')
+                self.add_tc_checkbox.deselect()
 
         # eventlog.listen('update_radio_lbl', update_radio_lbl)
         eventlog.listen('tool_list_regenerated', update_tool_entries)

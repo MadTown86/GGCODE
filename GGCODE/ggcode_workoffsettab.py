@@ -171,7 +171,7 @@ class WoTab(tk.Frame):
 
         def error_msg(payload):
             """
-            This method will display an error message.
+            This method will display an error message in the textbox.
             :param payload:
             :return:
             """
@@ -299,13 +299,39 @@ class WoTab(tk.Frame):
             split_text = self.text.split('\n')
             for line_no in range(len(split_text)):
                 for org_offset, changed_offset in self.offset_updatesdict.items():
+                    s_org_equivalent = ''
+                    s_changed_equivalent = ''
+                    if 'P' in org_offset:
+                        p_val = org_offset.split('P')[1]
+                        if int(p_val) < 10:
+                            p_val = '0' + p_val
+                        else:
+                            pass
+                        s_org_equivalent = 'S154.' + p_val
+                    else:
+                        s_org_equivalent = 'S' + str(int(org_offset[1:])-53)
+                    if 'P' in changed_offset:
+                        p_val = changed_offset.split('P')[1]
+                        if int(p_val) < 10:
+                            p_val = '0' + p_val
+                        else:
+                            pass
+                        s_changed_equivalent = 'S154.' + p_val
+                    else:
+                        s_changed_equivalent = 'S' + str(int(changed_offset[1:])-53)
                     if changed_offset == 'No Change':
                         continue
                     if org_offset in split_text[line_no]:
-                        new_line = ''
                         new_line = split_text[line_no].replace(org_offset, changed_offset)
                         split_text[line_no] = new_line
                         # print(f'UPDATED LINE FROM WORKOFFSETS: {split_text[line_no]=}')
+                    if 'G65' in split_text[line_no] and 'S' in split_text[line_no] and s_org_equivalent in split_text[line_no]:
+                        new_line = split_text[line_no].replace(s_org_equivalent, s_changed_equivalent)
+                        split_text[line_no] = new_line
+                    if 'G65' in split_text[line_no] and 'W' + org_offset[1:] +'.' in split_text[line_no]:
+                        new_line = split_text[line_no].replace('W' + org_offset[1:] + '.', s_changed_equivalent)
+                        split_text[line_no] = new_line
+
 
             res_text = '\n'.join(split_text)
 

@@ -1,6 +1,7 @@
 """
 This class will house error/exception handling for the GGCODE project.
 """
+import traceback
 from GGCODE.ggcode_errormsgbox import GGCODE_ErrorMsgBox as MB
 
 
@@ -14,21 +15,16 @@ class ToolNotFoundException(BaseException):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.messagebox = MB()
-        self.messagebox.setMsg('Tool Not Found')
-        self.messagebox.setStackTrace(self.__context__)
-        self.messagebox.start()
 
-class InvalidToolException(BaseException):
+
+class InvalidToolException(OverflowError):
     """
     This exception is raised when no tool is selected when attempting to log tool update information.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.messagebox = MB()
-        self.messagebox.setMsg(args)
-        self.messagebox.setStackTrace(self.__context__)
-        self.messagebox.start()
+
+
 
 class InvalidFileFormat(BaseException):
     """
@@ -40,10 +36,7 @@ class InvalidFileFormat(BaseException):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.messagebox = MB()
-        self.messagebox.setMsg('Invalid File Format')
-        self.messagebox.setStackTrace(self.__context__)
-        self.messagebox.start()
+
 
 class InvalidOffsetEntry(BaseException):
     """
