@@ -153,7 +153,7 @@ class ToolTab(tk.Frame):
             rowcount += 1
 
             # Store Tool Update Button - Bound to store_tool_changes
-            self.update_tool_btn = tk.Button(self, text='Store Tool Update')
+            self.update_tool_btn = tk.Button(self, text='Store Changes')
             self.update_tool_btn.grid(column=0, row=rowcount, sticky='ew')
             rowcount += 1
 

@@ -60,6 +60,8 @@ class MRP:
         self.textpane.grid_rowconfigure(0, weight=1)
         self.textpane.grid_columnconfigure(0, weight=1)
 
+
+        # Notebook Core Element
         self.tabs = ttk.Notebook(self.right_pane)
         self.file_tab = ggcode_filetab.FileTab(self.tabs, bg='#9C5935', border=5,
                                                borderwidth=5, padx=5, pady=5, relief='flat')

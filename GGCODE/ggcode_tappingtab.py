@@ -120,7 +120,7 @@ class TappingTab(tk.Frame):
             self.tab_spacer2.grid(column=0, columnspan=2, row=count, sticky='ew')
             count += 1
 
-            self.confirm_choices = tk.Button(self, text='Confirm Choices', justify='center', pady=10)
+            self.confirm_choices = tk.Button(self, text='Store Changes', justify='center', pady=10)
             self.confirm_choices.grid(column=0, columnspan=2, row=count, sticky='ew')
 
             # Binding the confirm_choices button to the confirm_choices_event method
