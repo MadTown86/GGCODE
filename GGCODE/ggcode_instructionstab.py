@@ -1,4 +1,5 @@
 import tkinter as tk
+import textwrap
 from tkinter.ttk import Scrollbar
 
 class InstructionsTab(tk.Frame):
@@ -12,46 +13,45 @@ class InstructionsTab(tk.Frame):
 
         yscrollbar = Scrollbar(self, orient=tk.VERTICAL)
         self.instructions = tk.Text(self, bg='white', relief='raised', wrap='word', yscrollcommand=yscrollbar.set)
-        self.instructions.config(height=600, width=400, state='disabled', tabstyle='tabular', padx=50, pady=5)
+        self.instructions.config(height=600, width=400, state='disabled', tabstyle='tabular', padx=25, pady=5)
         self.instructions.grid(column=0, row=0, sticky='nsew')
         yscrollbar.config(command=self.instructions.yview)
         yscrollbar.grid(column=1, row=0, sticky='ns')
 
-        message = """First of all - Disclaimer! Backup copies of your GCODE files before using in this application.  This application is still in development and may \
-        have bugs that could cause damage to your GCODE files, cause them to call tools incorrectly, crash your machine or cause any other number of issues.
-        The author assumes no responsibility for any damage caused by this application
-        in any form. Use at your own risk!
+        message = """First of all - Disclaimer! Backup copies of your GCODE files before using in this application.  \
+        This application is still in development and may have bugs that could cause damage to your GCODE files, \
+        cause them to call tools incorrectly, crash your machine or cause any other number of issues. The author \
+        assumes no responsibility for any damage caused by this application in any form. Use at your own risk!\n\n
+        This application is called GGCODE and is meant to help users \
+        make minor edits to GCODE files.\n\n \
         
-        This application is called GGCODE and is meant to help users 
-        make minor edits to GCODE files.
+        The left core layout is a text pane that displays the GCODE file. \
+        An attempt was made to color code the text to make it easier to read.\n\n
         
-        The left core layout is a text pane that displays the GCODE file.
-        An attempt was made to color code the text to make it easier to read.
+        There are also '<-Tool' and 'Tool->' buttons that will seek to the \
+        previous or next tool change in the file.\n\n
         
-        There are also '<-Tool' and 'Tool->' buttons that will seek to the 
-        previous or next tool change in the file.  
+        The following is a list of features: \n
+        1. N-Code Renumbering All, Isolation to Tool Change or Removal \n
+        2. Tapping Cycle Conversion To Repeat Rigid Tapping using G95 (IPR) \n
+        3. Altering Tool Numbers and Corresponding H and D Values \n
+        4. Altering Work Offsets and updating the corresponding probing cycle 'S' values. \n
         
-        The following is a list of features:
-        1. N-Code Renumbering All, Isolation to Tool Change or Removal
-        2. Tapping Cycle Conversion To Repeat Rigid Tapping using G95 (IPR)
-        3. Altering Tool Numbers and Corresponding H and D Values
-        4. Altering Work Offsets and updating the corresponding probing cycle 'S' values.
+        General Instructions:\n
+        To get started, please first click the file tab and select a G-Code File.  \
+        Then press 'initial scan' to scan the file and enable the rest of the features. \n\n
         
-        General Instructions:
-        To get started, please first click the file tab and select a G-Code File.
-        Then press 'initial scan' to scan the file and enable the rest of the features.
+        As you navigate through the tabs and make changes, you need to complete the choices \
+        in each tab and click 'Send To File' before advancing to the next tab otherwise \
+        choices may be lost.\n\n
         
-        As you navigate through the tabs and make changes, you need to complete the choices
-        in each tab and click 'Send To File' before advancing to the next tab otherwise 
-        choices may be lost.
+        The choices you make will be reflected in the left text pane.\n\n
         
-        The choices you make will be reflected in the left text pane.
+        *Note: For the Tapping, Tool Data and Work Offset Tabs, you first save a 'log' of your desired edits\n\n \
+        by pressing 'Store Changes' after selections have been made.  When you have finally made all of your\
+        edits you press 'Send To File'.\
         
-        *Note: For the Tapping, Tool Data and Work Offset Tabs, you first save a 'log' of your desired edits
-        by pressing 'Store Changes' after selections have been made.  When you have finally made all of your
-        edits you press 'Send To File'.
-        
-        'FILE' Tab Features:
+        'FILE' Tab Features:\n\n
         1. Select a G-Code File
         2. Click 'Initial Scan' to parse document and enable other features.
         3. Activate Textbox to edit left text pane manually.
@@ -99,6 +99,8 @@ class InstructionsTab(tk.Frame):
         Please log issues on the GitHub page for this project, my profile. https://github.com/MadTown86
         """
 
+
+
         self.instructions.config(state='normal')
-        self.instructions.insert("1.0", message)
+        self.instructions.insert("1.0", ''.join(textwrap.dedent(message.splitlines())))
         self.instructions.config(state='disabled')
