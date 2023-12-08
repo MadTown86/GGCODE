@@ -1,22 +1,24 @@
 import tkinter as tk
 from tkinter.ttk import Scrollbar
 
-class GGCODE_InstructionsTab(tk.Frame):
+class InstructionsTab(tk.Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.instructions = tk.Text(self, bg='#597275', relief='raised')
-        self.instructions.grid(column=0, row=0, sticky='nsew')
-        self.instructions.grid_columnconfigure(0, weight=1)
-        self.instructions.grid_rowconfigure(0, weight=1)
 
-        message = """
-        
-        First of all - Disclaimer! Backup copies of your GCODE files before using
-        in this application.  This application is still in development and may
-        have bugs that could cause damage to your GCODE files, cause them to call
-        tools incorrectly, crash your machine or cause any other number of issues.
+
+        self.grid_propagate(False)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        yscrollbar = Scrollbar(self, orient=tk.VERTICAL)
+        self.instructions = tk.Text(self, bg='white', relief='raised', wrap='word', yscrollcommand=yscrollbar.set)
+        self.instructions.config(height=600, width=400, state='disabled', tabstyle='tabular', padx=50, pady=5)
+        self.instructions.grid(column=0, row=0, sticky='nsew')
+        yscrollbar.config(command=self.instructions.yview)
+        yscrollbar.grid(column=1, row=0, sticky='ns')
+
+        message = """First of all - Disclaimer! Backup copies of your GCODE files before using in this application.  This application is still in development and may \
+        have bugs that could cause damage to your GCODE files, cause them to call tools incorrectly, crash your machine or cause any other number of issues.
         The author assumes no responsibility for any damage caused by this application
         in any form. Use at your own risk!
         
@@ -96,4 +98,7 @@ class GGCODE_InstructionsTab(tk.Frame):
         
         Please log issues on the GitHub page for this project, my profile. https://github.com/MadTown86
         """
-        self.instructions.insert(tk.END, message)
+
+        self.instructions.config(state='normal')
+        self.instructions.insert("1.0", message)
+        self.instructions.config(state='disabled')

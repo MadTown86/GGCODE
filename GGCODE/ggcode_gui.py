@@ -10,6 +10,7 @@ import GGCODE.ggcode_tappingtab as ggcode_tappingtab
 import GGCODE.ggcode_eventhandler as ggcode_eventhandler
 import GGCODE.ggcode_tooltab as ggcode_tooldata
 import GGCODE.ggcode_workoffsettab as ggcode_workoffsettab
+import GGCODE.ggcode_instructionstab as ggcode_instructionstab
 
 class MRP:
     file = None
@@ -63,6 +64,10 @@ class MRP:
 
         # Notebook Core Element
         self.tabs = ttk.Notebook(self.right_pane)
+        self.instructions_tab = ggcode_instructionstab.InstructionsTab(self.tabs, bg='#597275', border=5,
+                                                                       borderwidth=5, padx=5, pady=5, relief='flat')
+        self.tabs.add(self.instructions_tab, text='INSTRUCTIONS', state="normal")
+
         self.file_tab = ggcode_filetab.FileTab(self.tabs, bg='#9C5935', border=5,
                                                borderwidth=5, padx=5, pady=5, relief='flat')
         self.tabs.add(self.file_tab, text='FILE', state="normal")
@@ -75,7 +80,6 @@ class MRP:
         self.tool_tab = ggcode_tooldata.ToolTab(self.tabs, bg='#D98E04', border=5,
                                                 borderwidth=5, padx=5, pady=5, relief='flat')
         self.tabs.add(self.tool_tab, text='TOOL DATA', state='normal')
-        self.tabs.grid(column=0, row=0, sticky='nsew')
         self.workoffsettab = ggcode_workoffsettab.WoTab(self.tabs, bg='#D98E04',
                                                         border=5, borderwidth=5, padx=5, pady=5, relief='flat')
         self.tabs.add(self.workoffsettab, text='WORK OFFSETS', state='normal')
