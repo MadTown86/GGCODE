@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter.ttk import Scrollbar
-from textwrap import *
 
 class InstructionsTab(tk.Frame):
     def __init__(self, *args, **kwargs):
