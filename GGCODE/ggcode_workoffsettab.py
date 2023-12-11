@@ -5,7 +5,7 @@ This holds the work offset tab class information for GGCODE project.
 import tkinter as tk
 from tkinter.ttk import Scrollbar
 from tkinter.ttk import Radiobutton
-from collections import defaultdict
+import random
 
 from GGCODE.ggcode_eventhandler import EventHandler as eventlog
 import GGCODE.ggcode_exceptionhandler as EH
@@ -20,6 +20,8 @@ class WoTab(tk.Frame):
         super().__init__(*args, **kwargs)
         self.workoffsets = None
         bg_color = '#D98E04'
+
+        self.run_second_accumulated_offsets = {}
 
         core_rowcount = 0
         self.grid_columnconfigure(0, weight=50)
@@ -73,7 +75,8 @@ class WoTab(tk.Frame):
         def add_offsetradios(payload):
             nonlocal canvas_rowcount
             """
-            This method will add the radio buttons for each work offset.
+            This method will add the radio buttons for each work offset. It is called when the user clicks the
+            'Initial Scan' button.
             :param payload:
             :return:
             """
@@ -149,7 +152,7 @@ class WoTab(tk.Frame):
 
         def delete_offsetradios():
             """
-            This method will update the radio buttons for each work offset.
+            This method will delete the radio buttons for each work offset.
             :param payload:
             :return:
             """
@@ -160,6 +163,7 @@ class WoTab(tk.Frame):
                     canvas_rowcount -= 1
                 elif slave in self.radiobuttonlbl_bin.values():
                     slave.destroy()
+            self.radiobutton_bin = {}
 
         def update_offsetradiolbls(payload):
             """
@@ -255,35 +259,62 @@ class WoTab(tk.Frame):
 
         def update_file(event):
             """
-            This method will update the file with the new work offsets.
+            This method will update the file with the new work offsets.  Core algorithm in this file is checking to
+            ensure that there are no duplicate work offsets.  If there are, then an error message is displayed and the
+            user is prompted to fix the issue.
+
+            This also sorts the work offsets to make sure that they do not canabalize themselves during the re-write
+            process.
             :param event:
             :return:
             """
             try:
                 error_flag = False
                 accumulated_offsets = []
+                temp_switchdict = {}
 
+                # Recreating list of original offsets sent to this tab
                 for radiobutton in self.radiobutton_bin.values():
                     accumulated_offsets.append(radiobutton['value'])
 
-                # print(f'{accumulated_offsets=}')
+                # Creating a copy of the original offsets to check for canabalization
+                offsets_for_canabalize = accumulated_offsets.copy()
 
                 for key, value in self.offset_updatesdict.items():
                     if key in accumulated_offsets and value != 'No Change':
                         accumulated_offsets.remove(key)
-                        if value not in accumulated_offsets:
-                            accumulated_offsets.append(value)
-                        else:
-                            error_flag = True
-                            error_msg('Duplicate Work Offset Entries')
-                            raise EH.InvalidOffsetEntry
+                        accumulated_offsets.append(value)
+
+                duplicate_list = set()
+                for offset in accumulated_offsets:
+                    if accumulated_offsets.count(offset) > 1:
+                        duplicate_list.add(offset)
+                        error_flag = True
 
                 if not error_flag:
+                    # Checking for canabalization
+                    for key, value in self.offset_updatesdict.items():
+                        if value in offsets_for_canabalize:
+                            random_placeholder = 'G' + str(random.randint(190, 220))
+                            while random_placeholder in temp_switchdict.values():
+                                random_placeholder = 'G' + str(random.randint(190, 220))
+                            temp_switchdict[key] = random_placeholder
+                            self.run_second_accumulated_offsets[random_placeholder] = value
+                        else:
+                            temp_switchdict[key] = value
+                    self.offset_updatesdict = temp_switchdict.copy()
+
+                    print(f'{temp_switchdict=}')
+                    print(f'{self.run_second_accumulated_offsets=}')
+
                     eventlog.generate('get_text_workoffset', ('1.0', 'end', 'workoffset'))
                     eventlog.listen('workoffset_list_generated', add_offsetradios)
+                else:
+                    error_msg(f'Invalid Offset Entry - {duplicate_list} is(are) entered more than once')
+                    raise EH.InvalidOffsetEntry
 
             except EH.InvalidOffsetEntry as e:
-                accumulated_offsets = []
+                pass
 
         def receive_current_text(payload):
             """
@@ -297,10 +328,46 @@ class WoTab(tk.Frame):
             print('receive_current_text called - from ggcode_workoffsettab.py')
             self.text = payload
             split_text = self.text.split('\n')
+            # Run first pass to update work offsets, second pass necessary to avoid canabalization
             for line_no in range(len(split_text)):
                 for org_offset, changed_offset in self.offset_updatesdict.items():
-                    s_org_equivalent = ''
-                    s_changed_equivalent = ''
+                    if 'P' in org_offset:
+                        p_val = org_offset.split('P')[1]
+                        if int(p_val) < 10:
+                            p_val = '0' + p_val
+                        else:
+                            pass
+                        s_org_equivalent = 'S154.' + p_val
+                    else:
+                        s_org_equivalent = 'S' + str(int(org_offset[1:])-53)
+                    if 'P' in changed_offset:
+                        p_val = changed_offset.split('P')[1]
+                        if int(p_val) < 10:
+                            p_val = '0' + p_val
+                        else:
+                            pass
+                        s_changed_equivalent = 'S154.' + p_val
+                    else:
+                        s_changed_equivalent = 'S' + str(int(changed_offset[1:])-53)
+
+                    if changed_offset == 'No Change':
+                        continue
+                    if org_offset in split_text[line_no]:
+                        new_line = split_text[line_no].replace(org_offset, changed_offset)
+                        split_text[line_no] = new_line
+                    if 'G65' in split_text[line_no] and 'S' in split_text[line_no] and s_org_equivalent in split_text[line_no]:
+                        start = split_text[line_no].index('S')
+                        stop = start + 1
+                        while stop < len(split_text[line_no]) and split_text[line_no][stop].isnumeric():
+                            stop += 1
+                        new_line = split_text[line_no][:start] + s_changed_equivalent + split_text[line_no][stop:]
+                        split_text[line_no] = new_line
+                    if 'G65' in split_text[line_no] and 'W' + org_offset[1:] + '.' in split_text[line_no]:
+                        new_line = split_text[line_no].replace('W' + org_offset[1:] + '.', s_changed_equivalent)
+                        split_text[line_no] = new_line
+
+            for line_no in range(len(split_text)):
+                for org_offset, changed_offset in self.run_second_accumulated_offsets.items():
                     if 'P' in org_offset:
                         p_val = org_offset.split('P')[1]
                         if int(p_val) < 10:
@@ -324,13 +391,18 @@ class WoTab(tk.Frame):
                     if org_offset in split_text[line_no]:
                         new_line = split_text[line_no].replace(org_offset, changed_offset)
                         split_text[line_no] = new_line
-                        # print(f'UPDATED LINE FROM WORKOFFSETS: {split_text[line_no]=}')
                     if 'G65' in split_text[line_no] and 'S' in split_text[line_no] and s_org_equivalent in split_text[line_no]:
-                        new_line = split_text[line_no].replace(s_org_equivalent, s_changed_equivalent)
+                        start = split_text[line_no].index('S')
+                        stop = start + 1
+                        while stop < len(split_text[line_no]) and split_text[line_no][stop].isnumeric():
+                            stop += 1
+                        new_line = split_text[line_no][:start] + s_changed_equivalent + split_text[line_no][stop:]
                         split_text[line_no] = new_line
-                    if 'G65' in split_text[line_no] and 'W' + org_offset[1:] +'.' in split_text[line_no]:
+                    if 'G65' in split_text[line_no] and 'W' + org_offset[1:] + '.' in split_text[line_no]:
                         new_line = split_text[line_no].replace('W' + org_offset[1:] + '.', s_changed_equivalent)
                         split_text[line_no] = new_line
+
+
 
 
             res_text = '\n'.join(split_text)
